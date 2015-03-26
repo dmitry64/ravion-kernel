@@ -138,7 +138,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		led-12von {
 			label = "12V enable";
 			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
+			default-state = "off";
 			linux,default-trigger = "none";
 		};
 	};
@@ -400,6 +400,11 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		clocks = <&clk_26M>;
 		VDDA-supply = <&vdig_reg>;
 		VDDIO-supply = <&vvideo_reg>;
+	};
+
+	composite-in@20 {
+		compatible = "adi,adv7180";
+		reg = <0x20>;
 	};
 };
 
