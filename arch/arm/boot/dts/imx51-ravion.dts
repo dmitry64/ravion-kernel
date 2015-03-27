@@ -141,6 +141,13 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			default-state = "off";
 			linux,default-trigger = "none";
 		};
+
+		led-26men {
+			label = "26MHz clock enable";
+			gpios = <&gpio3 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			linux,default-trigger = "none";
+		};
 	};
 
 	regulators {
@@ -244,6 +251,21 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				regulator-always-on;
 			};
 
+			viohi_reg: viohi {
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			vusb_reg: vusb {
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			vswbst_reg: swbst {
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
 			vpll_reg: vpll {
 				regulator-min-microvolt = <1050000>;
 				regulator-max-microvolt = <1800000>;
@@ -254,12 +276,8 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			vdig_reg: vdig {
 				regulator-min-microvolt = <1650000>;
 				regulator-max-microvolt = <1650000>;
+				regulator-always-on;
 				regulator-boot-on;
-			};
-
-			vsd_reg: vsd {
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <3150000>;
 			};
 
 			vusb2_reg: vusb2 {
@@ -275,7 +293,8 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				regulator-boot-on;
 				regulator-always-on;
 			};
-
+/*******************************************************************
+* This regulators on PMIC _NOT_ used on Dalamnt Ravion UTSVU BOARD *
 			vaudio_reg: vaudio {
 				regulator-min-microvolt = <2300000>;
 				regulator-max-microvolt = <3000000>;
@@ -286,10 +305,17 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				regulator-max-microvolt = <3000000>;
 			};
 
+			vsd_reg: vsd {
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <3150000>;
+			};
+
 			vgen1_reg: vgen1 {
 				regulator-min-microvolt = <1200000>;
 				regulator-max-microvolt = <1200000>;
 			};
+* This regulators on PMIC _NOT_ used on Dalamnt Ravion UTSVU BOARD *
+*******************************************************************/
 
 			vgen2_reg: vgen2 {
 				regulator-min-microvolt = <1200000>;
@@ -303,6 +329,18 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				regulator-max-microvolt = <2900000>;
 				regulator-boot-on;
 				regulator-always-on;
+			};
+
+			vgpo1_reg: gpo1 {
+			};
+
+			vgpo2_reg: gpo2 {
+			};
+
+			vgpo3_reg: gpo3 {
+			};
+
+			vgpo4_reg: gpo4 {
 			};
 		};
 	};
@@ -398,7 +436,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		pinctrl-0 = <&pinctrl_clkcodec>;
 		reg = <0x0a>;
 		clocks = <&clk_26M>;
-		VDDA-supply = <&vdig_reg>;
+		VDDA-supply = <&vgen3_reg>;
 		VDDIO-supply = <&vvideo_reg>;
 	};
 
@@ -406,6 +444,12 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		compatible = "adi,adv7180";
 		reg = <0x20>;
 	};
+};
+
+&owire {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_owire>;
+	status = "okay";
 };
 
 &ipu_di0_disp0 {
@@ -570,6 +614,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			fsl,pins = <
 				MX51_PAD_CSI2_PIXCLK__GPIO4_15		0x85 /* 3V3 power on */
 				MX51_PAD_GPIO1_1__GPIO1_1		0x85 /* 12V power on */
+				MX51_PAD_DI1_PIN12__GPIO3_1		0x85 /* 26M clock on */
 			>;
 		};
 
@@ -584,6 +629,12 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			fsl,pins = <
 				MX51_PAD_GPIO1_2__I2C2_SCL		0x400001ed
 				MX51_PAD_GPIO1_3__I2C2_SDA		0x400001ed
+			>;
+		};
+
+		pinctrl_owire: owiregrp {
+			fsl,pins = <
+				MX51_PAD_OWIRE_LINE__OWIRE_LINE		0x40000000
 			>;
 		};
 
