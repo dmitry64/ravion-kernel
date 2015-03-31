@@ -44,7 +44,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		};
 	};
 
-	display0: display@di0 {
+	display0: display@di0 { /* LVDS */
 		compatible = "fsl,imx-parallel-display";
 		interface-pix-fmt = "rgb24";
 		pinctrl-names = "default";
@@ -71,7 +71,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		};
 	};
 
-	display1: display@di1 {
+	display1: display@di1 { /* VGA */
 		compatible = "fsl,imx-parallel-display";
 		interface-pix-fmt = "rgb565";
 		pinctrl-names = "default";
@@ -145,6 +145,41 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		led-26men {
 			label = "26MHz clock enable";
 			gpios = <&gpio3 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			linux,default-trigger = "none";
+		};
+
+		led-ulpiclken {
+			label = "ULPI clock enable";
+			gpios = <&gpio4 13 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			linux,default-trigger = "none";
+		};
+
+		led-vgapwrdn {
+			label = "VGA powerdown";
+			gpios = <&gpio3 8 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			linux,default-trigger = "none";
+		};
+
+		led-lvdspwrdn {
+			label = "LVDS powerdown";
+			gpios = <&gpio3 3 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			linux,default-trigger = "none";
+		};
+
+		led-captreset {
+			label = "Video capture reset";
+			gpios = <&gpio4 11 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			linux,default-trigger = "none";
+		};
+
+		led-captpwrdn {
+			label = "Video capture powerdown";
+			gpios = <&gpio4 12 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 			linux,default-trigger = "none";
 		};
@@ -614,7 +649,15 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			fsl,pins = <
 				MX51_PAD_CSI2_PIXCLK__GPIO4_15		0x85 /* 3V3 power on */
 				MX51_PAD_GPIO1_1__GPIO1_1		0x85 /* 12V power on */
+
 				MX51_PAD_DI1_PIN12__GPIO3_1		0x85 /* 26M clock on */
+				MX51_PAD_CSI2_VSYNC__GPIO4_13		0x85 /* ULPI clock enable */
+
+				MX51_PAD_DISPB2_SER_RS__GPIO3_8		0x85 /* VGA powerdown */
+				MX51_PAD_DI1_D0_CS__GPIO3_3		0x85 /* LVDS powerdown */
+
+				MX51_PAD_CSI2_D18__GPIO4_11		0x85 /* CAPTURE reset */
+				MX51_PAD_CSI2_D19__GPIO4_12		0x85 /* CAPTURE powerdown */
 			>;
 		};
 
@@ -638,7 +681,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			>;
 		};
 
-		pinctrl_ipu_disp1: ipudisp1grp {
+		pinctrl_ipu_disp1: ipudisp1grp { /* LVDS */
 			fsl,pins = <
 				MX51_PAD_DISP1_DAT0__DISP1_DAT0		0x5
 				MX51_PAD_DISP1_DAT1__DISP1_DAT1		0x5
@@ -664,12 +707,14 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				MX51_PAD_DISP1_DAT21__DISP1_DAT21	0x5
 				MX51_PAD_DISP1_DAT22__DISP1_DAT22	0x5
 				MX51_PAD_DISP1_DAT23__DISP1_DAT23	0x5
-				MX51_PAD_DI1_PIN2__DI1_PIN2		0x5
-				MX51_PAD_DI1_PIN3__DI1_PIN3		0x5
+				MX51_PAD_DI1_PIN2__DI1_PIN2		0x5 /* HSYNC */
+				MX51_PAD_DI1_PIN3__DI1_PIN3		0x5 /* VSYNC */
+			/*	MX51_PAD_DI1_PIN15__DI1_PIN15		0x5 // RDY */
+				MX51_PAD_DI_GP2__DISP1_SER_CLK		0x5 /* CLK */
 			>;
 		};
 
-		pinctrl_ipu_disp2: ipudisp2grp {
+		pinctrl_ipu_disp2: ipudisp2grp { /* VGA */
 			fsl,pins = <
 				MX51_PAD_DISP2_DAT0__DISP2_DAT0		0x5
 				MX51_PAD_DISP2_DAT1__DISP2_DAT1		0x5
@@ -687,10 +732,10 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				MX51_PAD_DISP2_DAT13__DISP2_DAT13	0x5
 				MX51_PAD_DISP2_DAT14__DISP2_DAT14	0x5
 				MX51_PAD_DISP2_DAT15__DISP2_DAT15	0x5
-				MX51_PAD_DI2_PIN2__DI2_PIN2		0x5
-				MX51_PAD_DI2_PIN3__DI2_PIN3		0x5
-				MX51_PAD_DI2_DISP_CLK__DI2_DISP_CLK	0x5
-				MX51_PAD_DI_GP4__DI2_PIN15		0x5
+				MX51_PAD_DI2_PIN2__DI2_PIN2		0x5 /* HSYNC */
+				MX51_PAD_DI2_PIN3__DI2_PIN3		0x5 /* VSYNC */
+				MX51_PAD_DI2_DISP_CLK__DI2_DISP_CLK	0x5 /* CLK */
+				MX51_PAD_DI_GP4__DI2_PIN15		0x5 /* DRDY */
 			>;
 		};
 
