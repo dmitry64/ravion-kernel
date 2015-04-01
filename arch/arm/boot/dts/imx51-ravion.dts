@@ -22,8 +22,9 @@
 	chosen {
 		stdout-path = &uart1;
 		bootargs = "console=ttymxc0,115200 debug ignore_loglevel LOGLEVEL=8 \
-ip=192.168.5.102:192.168.5.222:192.168.5.222:255.255.255.0:utsvu:eth0:off \
-root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
+root=/dev/mmcblk0p1 ro";
+/* ip=192.168.5.102:192.168.5.222:192.168.5.222:255.255.255.0:utsvu:eth0:off \
+root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon"; */
 	};
 
 	memory {
@@ -44,50 +45,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		};
 	};
 
-	display0: display@di1 { /* VGA */
-		compatible = "fsl,imx-parallel-display";
-		interface-pix-fmt = "rgb565";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ipu_disp2>;
-		status = "disabled";
-		display-timings {
-			native-mode = <&timing0>;
-			timing0: 800x600 {
-				clock-frequency = <40000000>;
-				hactive = <800>;
-				vactive = <600>;
-				hback-porch = <75>;
-				hfront-porch = <75>;
-				vback-porch = <7>;
-				vfront-porch = <75>;
-				hsync-len = <7>;
-				vsync-len = <7>;
-				de-active = <1>;
-				pixelclk-active = <1>;
-			};
-			timing1: 1024x768 {
-				clock-frequency = <65000000>;
-				hactive = <1024>;
-				vactive = <768>;
-				hback-porch = <220>;
-				hfront-porch = <40>;
-				vback-porch = <21>;
-				vfront-porch = <7>;
-				hsync-len = <60>;
-				vsync-len = <10>;
-				de-active = <1>;
-				pixelclk-active = <1>;
-			};
-		};
-
-		port {
-			display1_in: endpoint {
-				remote-endpoint = <&ipu_di1_disp1>;
-			};
-		};
-	};
-
-	display1: display@di0 { /* LVDS */
+	display0: display@di0 { /* LVDS */
 		compatible = "fsl,imx-parallel-display";
 		interface-pix-fmt = "rgb24";
 		pinctrl-names = "default";
@@ -112,6 +70,49 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 		port {
 			display0_in: endpoint {
 				remote-endpoint = <&ipu_di0_disp0>;
+			};
+		};
+	};
+
+	display1: display@di1 { /* VGA */
+		compatible = "fsl,imx-parallel-display";
+		interface-pix-fmt = "rgb565";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ipu_disp2>;
+		status = "disabled";
+		display-timings {
+			native-mode = <&vga0>;
+			vga0: 800x600 {
+				clock-frequency = <40000000>;
+				hactive = <800>;
+				vactive = <600>;
+				hback-porch = <75>;
+				hfront-porch = <75>;
+				vback-porch = <7>;
+				vfront-porch = <75>;
+				hsync-len = <7>;
+				vsync-len = <7>;
+				de-active = <1>;
+				pixelclk-active = <1>;
+			};
+			vga1: 1024x768 {
+				clock-frequency = <65000000>;
+				hactive = <1024>;
+				vactive = <768>;
+				hback-porch = <220>;
+				hfront-porch = <40>;
+				vback-porch = <21>;
+				vfront-porch = <7>;
+				hsync-len = <60>;
+				vsync-len = <10>;
+				de-active = <1>;
+				pixelclk-active = <1>;
+			};
+		};
+
+		port {
+			display1_in: endpoint {
+				remote-endpoint = <&ipu_di1_disp1>;
 			};
 		};
 	};
@@ -263,9 +264,10 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 &ecspi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_ecspi1>;
-	fsl,spi-num-chipselects = <2>;
+	fsl,spi-num-chipselects = <3>;
 	cs-gpios = <&gpio4 24 GPIO_ACTIVE_HIGH>,
-		   <&gpio4 25 GPIO_ACTIVE_LOW>;
+		   <&gpio4 25 GPIO_ACTIVE_LOW>,
+		   <&gpio3 0 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
 	pmic: mc13892@0 {
@@ -420,20 +422,20 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 			reg = <0x100000 0x400000>;
 		};
 	};
+
+	ext: wifi_module@2 { /* Placed on extension module */
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "p54spi";
+		spi-max-frequency = <25000000>;
+		reg = <1>;
+	};
 };
 
 &esdhc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_esdhc1>;
 	cd-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
-	status = "okay";
-};
-
-&esdhc2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_esdhc2>;
-	cd-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
-	wp-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -553,6 +555,18 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 	status = "okay";
 };
 
+/*****************************
+* Extension board interfaces *
+*****************************/
+
+&esdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_esdhc2>;
+	cd-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+	wp-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
 &iomuxc {
 	imx51-babbage {
 		pinctrl_audmux: audmuxgrp {
@@ -577,6 +591,7 @@ root=/dev/nfs rw nfsroot=192.168.5.222:/cimc/root/armv7a-neon";
 				MX51_PAD_CSPI1_SCLK__ECSPI1_SCLK	0x185
 				MX51_PAD_CSPI1_SS0__GPIO4_24		0x85 /* CS0 */
 				MX51_PAD_CSPI1_SS1__GPIO4_25		0x85 /* CS1 */
+				MX51_PAD_DI1_PIN11__GPIO3_0		0x85 /* CS2 - Ext. board */
 			>;
 		};
 
