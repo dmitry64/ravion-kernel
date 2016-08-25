@@ -16,7 +16,7 @@
 
 	chosen {
 		bootargs = "
-console=tty0 console=ttymxc0,115200 bootdelay=1 root=/dev/nfs rw
+console=ttymxc0,115200 console=tty0 bootdelay=1 root=/dev/nfs rw
 ip=192.168.5.101:192.168.5.222:192.168.5.222:255.255.255.0:imx51dev:eth0:off
 nfsroot=192.168.5.222:/cimc/root/armv7a-neon/exports,v3,tcp";
 		stdout-path = &uart1;
@@ -39,6 +39,52 @@ nfsroot=192.168.5.222:/cimc/root/armv7a-neon/exports,v3,tcp";
 			#clock-cells = <0>;
 			clock-output-names = "gen_26MHz";
 			clock-frequency = <26000000>;
+		};
+	};
+
+	soc { /* Fix trouble in imx51.dtsi */
+		/* No clock source for iram in imx51.dtsi */
+		iram {
+			clocks = <&clks IMX5_CLK_OCRAM>;
+		};
+
+		/* TVE not present in imx51.dtsi */
+		tve: tve@63ff0000 {
+			compatible = "fsl,imx51-tve";
+			reg = <0x63ff0000 0x1000>;
+			interrupts = <92>;
+			clocks = <&clks IMX5_CLK_TVE_GATE>,
+			         <&clks IMX5_CLK_IPU_DI1_SEL>;
+			clock-names = "tve", "di_sel";
+			/* status = "disabled"; */
+
+			port {
+				tve_in: endpoint {
+/*					remote-endpoint = <&ipu_di1_tve>; */
+				};
+			};
+		};
+
+		/* VPU not present in imx51.dtsi */
+		vpu: vpu@63ff4000 {
+			compatible = "fsl,imx51-vpu", "cnm,coda7541";
+			reg = <0x63ff4000 0x1000>;
+			interrupts = <9>;
+			clocks = <&clks IMX5_CLK_VPU_REFERENCE_GATE>,
+				<&clks IMX5_CLK_VPU_GATE>;
+			clock-names = "per", "ahb";
+			resets = <&src 1>;
+			iram = <&iram>;
+		};
+
+		/* SAHARA not present in imx51.dtsi */
+		sahara: crypto@63ff8000 {
+			compatible = "fsl,imx51-sahara";
+			reg = <0x63ff8000 0x4000>;
+			interrupts = <19 20>;
+			clocks = <&clks IMX5_CLK_SAHARA_IPG_GATE>,
+				<&clks IMX5_CLK_SAHARA_IPG_GATE>;
+			clock-names = "ipg", "ahb";
 		};
 	};
 
@@ -353,6 +399,17 @@ nfsroot=192.168.5.222:/cimc/root/armv7a-neon/exports,v3,tcp";
 	};
 };
 
+/* Add Camera Sense Interfaces */
+&ipu {
+	ipu_csi0: port@0 {
+		reg = <0>;
+		status = "disabled";
+	};
+	ipu_csi1: port@1 {
+		reg = <1>;
+	};
+};
+
 &ipu_di0_disp0 {
 	remote-endpoint = <&display0_in>;
 };
@@ -360,7 +417,11 @@ nfsroot=192.168.5.222:/cimc/root/armv7a-neon/exports,v3,tcp";
 &ipu_di1_disp1 {
 	remote-endpoint = <&display1_in>;
 };
-
+/*
+&ipu_di1_tve {
+	remote-endpoint = <&tve_in>;
+};
+*/
 &audmux {
 	status = "okay";
 };
@@ -615,7 +676,7 @@ nfsroot=192.168.5.222:/cimc/root/armv7a-neon/exports,v3,tcp";
 		pinctrl-0 = <&pinctrl_cci1>; 
 		compatible = "adi,adv7180";
 		reg = <0x40>; /* ALSB on GROUNG plane */
-		/* remote = <&CSI0>; FixMe: later... */
+		remote = <&ipu_csi1>;
 
 		port {
 			adv7180_csi:endpoint {
