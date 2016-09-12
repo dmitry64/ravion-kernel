@@ -16,6 +16,8 @@
 	aliases {
 		can0 = &can0;
 		can1 = &can1;
+		ethernet0 = &fec0;
+		ethernet1 = &fec1;
 		serial0 = &uart0;
 		serial1 = &uart1;
 		serial2 = &uart2;
@@ -53,9 +55,56 @@
 	soc {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "simple-bus";
-		interrupt-parent = <&mscm_ir>;
+		compatible = "fsl,vf610-soc-bus", "simple-bus";
+		interrupt-parent = <&gpc>;
 		ranges;
+		fsl,rom-revision = <&ocrom 0x80>;
+		fsl,cpu-count = <&mscm_cpucfg 0x2C>;
+		fsl,l2-size = <&mscm_cpucfg 0x14>;
+		nvmem-cells = <&ocotp_cfg0>, <&ocotp_cfg1>;
+		nvmem-cell-names = "cfg0", "cfg1";
+
+		ocrom: ocrom@00000000 {
+			compatible = "fsl,vf610-ocrom", "syscon";
+			reg = <0x00000000 0x18000>;
+		};
+
+		ocram0: sram@3f000000 {
+			compatible = "mmio-sram";
+			reg = <0x3f000000 0x40000>;
+
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0 0x3f000000 0x40000>;
+
+			stbyram1@0 {
+				reg = <0x0 0x4000>;
+				label = "stbyram1";
+				pool;
+			};
+
+			stbyram2@4000 {
+				reg = <0x4000 0xc000>;
+				label = "stbyram2";
+				pool;
+			};
+		};
+
+		ocram1: sram@3f040000 {
+			compatible = "mmio-sram";
+			reg = <0x3f040000 0x40000>;
+		};
+
+		gfxram0: sram@3f400000 {
+			compatible = "mmio-sram";
+			reg = <0x3f400000 0x80000>;
+		};
+
+		/* used by L2 cache */
+		gfxram1: sram@3f480000 {
+			compatible = "mmio-sram";
+			reg = <0x3f480000 0x80000>;
+		};
 
 		aips0: aips-bus@40000000 {
 			compatible = "fsl,aips-bus", "simple-bus";
@@ -174,6 +223,34 @@
 				status = "disabled";
 			};
 
+			sai0: sai@4002f000 {
+				compatible = "fsl,vf610-sai";
+				reg = <0x4002f000 0x1000>;
+				interrupts = <84 IRQ_TYPE_LEVEL_HIGH>;
+				clocks = <&clks VF610_CLK_SAI0>,
+					<&clks VF610_CLK_SAI0_DIV>,
+					<&clks 0>, <&clks 0>;
+				clock-names = "bus", "mclk1", "mclk2", "mclk3";
+				dma-names = "tx", "rx";
+				dmas = <&edma0 0 17>,
+					<&edma0 0 16>;
+				status = "disabled";
+			};
+
+			sai1: sai@40030000 {
+				compatible = "fsl,vf610-sai";
+				reg = <0x40030000 0x1000>;
+				interrupts = <85 IRQ_TYPE_LEVEL_HIGH>;
+				clocks = <&clks VF610_CLK_SAI1>,
+					<&clks VF610_CLK_SAI1_DIV>,
+					<&clks 0>, <&clks 0>;
+				clock-names = "bus", "mclk1", "mclk2", "mclk3";
+				dma-names = "tx", "rx";
+				dmas = <&edma0 0 19>,
+					<&edma0 0 18>;
+				status = "disabled";
+			};
+
 			sai2: sai@40031000 {
 				compatible = "fsl,vf610-sai";
 				reg = <0x40031000 0x1000>;
@@ -185,6 +262,20 @@
 				dma-names = "tx", "rx";
 				dmas = <&edma0 0 21>,
 					<&edma0 0 20>;
+				status = "disabled";
+			};
+
+			sai3: sai@40032000 {
+				compatible = "fsl,vf610-sai";
+				reg = <0x40032000 0x1000>;
+				interrupts = <87 IRQ_TYPE_LEVEL_HIGH>;
+				clocks = <&clks VF610_CLK_SAI3>,
+					<&clks VF610_CLK_SAI3_DIV>,
+					<&clks 0>, <&clks 0>;
+				clock-names = "bus", "mclk1", "mclk2", "mclk3";
+				dma-names = "tx", "rx";
+				dmas = <&edma0 1 9>,
+					<&edma0 1 8>;
 				status = "disabled";
 			};
 
@@ -234,6 +325,14 @@
 							<20000000>;
 			};
 
+			tcon0: timing-controller@4003d000 {
+				compatible = "fsl,vf610-tcon";
+				reg = <0x4003d000 0x1000>;
+				clocks = <&clks VF610_CLK_TCON0>;
+				clock-names = "ipg";
+				status = "disabled";
+			};
+
 			wdoga5: wdog@4003e000 {
 				compatible = "fsl,vf610-wdt", "fsl,imx21-wdt";
 				reg = <0x4003e000 0x1000>;
@@ -270,6 +369,7 @@
 				interrupt-controller;
 				#interrupt-cells = <2>;
 				gpio-ranges = <&iomuxc 0 0 32>;
+				fsl,gpio-wakeup = <&wakeup 22 0 8>; /* PTB0...PTB7 */
 			};
 
 			gpio1: gpio@4004a000 {
@@ -281,6 +381,10 @@
 				interrupt-controller;
 				#interrupt-cells = <2>;
 				gpio-ranges = <&iomuxc 0 32 32>;
+				fsl,gpio-wakeup = <&wakeup 1 8 2>, /* PTB11, PTB12 (NMI)*/
+						<&wakeup 4 10 1>, /* PTB14 */
+						<&wakeup 6 11 1>, /* PTB16 */
+						<&wakeup 9 12 2>; /* PTB19, PTB20 */
 			};
 
 			gpio2: gpio@4004b000 {
@@ -303,6 +407,9 @@
 				interrupt-controller;
 				#interrupt-cells = <2>;
 				gpio-ranges = <&iomuxc 0 96 32>;
+				fsl,gpio-wakeup = <&wakeup 1 14 1>, /* PTB27 */
+						<&wakeup 7 15 1>, /* PTC30 */
+						<&wakeup 29 16 1>; /* PTE20 */
 			};
 
 			gpio4: gpio@4004d000 {
@@ -321,6 +428,11 @@
 				reg = <0x40050000 0x400>;
 			};
 
+			scsc: scsc@40052000 {
+				compatible = "fsl,vf610-scsc";
+				reg = <0x40052000 0x1000>;
+			};
+
 			usbphy0: usbphy@40050800 {
 				compatible = "fsl,vf610-usbphy";
 				reg = <0x40050800 0x400>;
@@ -336,6 +448,17 @@
 				interrupts = <51 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clks VF610_CLK_USBPHY1>;
 				fsl,anatop = <&anatop>;
+				status = "disabled";
+			};
+
+			dcu0: dcu@40058000 {
+				compatible = "fsl,vf610-dcu";
+				reg = <0x40058000 0x1200>;
+				interrupts = <30 IRQ_TYPE_LEVEL_HIGH>;
+				clocks = <&clks VF610_CLK_DCU0>,
+					<&clks VF610_CLK_DCU0_DIV>;
+				clock-names = "dcu", "pix";
+				fsl,tcon = <&tcon0>;
 				status = "disabled";
 			};
 
@@ -367,6 +490,13 @@
 				status = "disabled";
 			};
 
+			wakeup: wkpu@4006a000 {
+				compatible = "fsl,vf610-wkpu";
+				reg = <0x4006a000 0x1000>;
+				interrupts = <92 IRQ_TYPE_LEVEL_HIGH>;
+				clocks = <&clks VF610_CLK_WKPU>;
+			};
+
 			clks: ccm@4006b000 {
 				compatible = "fsl,vf610-ccm";
 				reg = <0x4006b000 0x1000>;
@@ -376,7 +506,7 @@
 			};
 
 			usbdev0: usb@40034000 {
-				compatible = "fsl,vf610-usb", "fsl,imx27-usb";
+				compatible = "fsl,vf610-usb";
 				reg = <0x40034000 0x800>;
 				interrupts = <75 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clks VF610_CLK_USBC0>;
@@ -398,6 +528,14 @@
 				compatible = "fsl,vf610-src", "syscon";
 				reg = <0x4006e000 0x1000>;
 				interrupts = <96 IRQ_TYPE_LEVEL_HIGH>;
+			};
+
+			gpc: gpc@4006c000 {
+				compatible = "fsl,vf610-gpc";
+				reg = <0x4006c000 0x1000>;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				interrupt-parent = <&mscm_ir>;
 			};
 		};
 
@@ -421,6 +559,22 @@
 				clocks = <&clks VF610_CLK_DMAMUX2>,
 					<&clks VF610_CLK_DMAMUX3>;
 				status = "disabled";
+			};
+
+			ocotp@400a5000 {
+				compatible = "fsl,vf610-ocotp";
+				#address-cells = <1>;
+				#size-cells = <1>;
+				reg = <0x400a5000 0xCF0>;
+				clocks = <&clks VF610_CLK_OCOTP>;
+
+				ocotp_cfg0: cfg0@410 {
+					reg = <0x410 0x4>;
+				};
+
+				ocotp_cfg1: cfg1@420 {
+					reg = <0x420 0x4>;
+				};
 			};
 
 			snvs0: snvs@400a7000 {
@@ -453,6 +607,13 @@
 				clocks = <&clks VF610_CLK_UART5>;
 				clock-names = "ipg";
 				status = "disabled";
+			};
+
+			ddrmc: ddrmc@400ae000 {
+				compatible = "fsl,vf610-ddrmc";
+				reg = <0x400ae000 0x400>;
+				clocks = <&clks VF610_CLK_DDRMC>;
+				clock-names = "ddrc";
 			};
 
 			adc1: adc@400bb000 {
@@ -490,7 +651,7 @@
 			};
 
 			usbh1: usb@400b4000 {
-				compatible = "fsl,vf610-usb", "fsl,imx27-usb";
+				compatible = "fsl,vf610-usb";
 				reg = <0x400b4000 0x800>;
 				interrupts = <76 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clks VF610_CLK_USBC1>;
@@ -531,6 +692,24 @@
 				clocks = <&clks VF610_CLK_QSPI1_EN>,
 					<&clks VF610_CLK_QSPI1>;
 				clock-names = "qspi_en", "qspi";
+				status = "disabled";
+			};
+
+			dac0: dac@400cc000 {
+				compatible = "fsl,vf610-dac";
+				reg = <0x400cc000 1000>;
+				interrupts = <55 IRQ_TYPE_LEVEL_HIGH>;
+				clock-names = "dac";
+				clocks = <&clks VF610_CLK_DAC0>;
+				status = "disabled";
+			};
+
+			dac1: dac@400cd000 {
+				compatible = "fsl,vf610-dac";
+				reg = <0x400cd000 1000>;
+				interrupts = <56 IRQ_TYPE_LEVEL_HIGH>;
+				clock-names = "dac";
+				clocks = <&clks VF610_CLK_DAC1>;
 				status = "disabled";
 			};
 
@@ -577,6 +756,18 @@
 				status = "disabled";
 			};
 
+			esw: l2-switch@400e8000 {
+				compatible = "fsl,eth-switch";
+				reg = <0x400e8000 0x1000 0x400d0000 0x2000>;
+				interrupts = <82 IRQ_TYPE_LEVEL_HIGH>;
+				clocks = <&clks VF610_CLK_ESW>,
+					<&clks VF610_CLK_ENET>,
+					<&clks VF610_CLK_ENET0>,
+					<&clks VF610_CLK_ENET1>;
+				clock-names = "esw", "enet", "enet0", "enet1";
+				status = "disabled";
+			};
+
 			i2c2: i2c@400e6000 {
 				#address-cells = <1>;
 				#size-cells = <0>;
@@ -604,6 +795,11 @@
 				dma-names = "rx","tx";
 				status = "disabled";
 			};
+		};
+
+		adc_hwmon: iio_hwmon {
+			compatible = "iio-hwmon";
+			io-channels = <&adc0 16>, <&adc1 16>;
 		};
 	};
 };
