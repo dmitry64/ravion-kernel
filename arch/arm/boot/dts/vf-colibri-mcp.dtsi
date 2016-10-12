@@ -67,10 +67,22 @@
 		vin-supply = <&reg_5v0>;
 	};
 
+	gpio-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		w1 {
+			label = "W1";
+			gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpiokeys>;
+		pinctrl-0 = <&pinctrl_keys>;
 
 		power {
 			label = "Power";
@@ -83,7 +95,7 @@
 
 	gpio-poweroff {
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpiopwr>;
+		pinctrl-0 = <&pinctrl_power>;
 		compatible = "gpio-poweroff";
 		gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
 	};
@@ -124,16 +136,16 @@
 &i2c0 {
 	status = "okay";
 
-	/* DS2782 fuel gauge controller */
+	/* DS2782: Fuel Gauge Controller */
 	fgc: ds2782@34 {
 		compatible = "ds2782";
 		reg = <0x34>;
 	};
 
-	/* I2C to OneWire converter */
-	owc: ds2482@30 {
-		compatibe = "ds2482";
-		reg = <0x30>;
+	/* DS2484: I2C to OneWire Converter */
+	owc: ds2482@18 {
+		compatible = "ds2482";
+		reg = <0x18>;
 	};
 };
 
@@ -173,16 +185,27 @@
 	vbus-supply = <&reg_usbh_vbus>;
 };
 
+/*
+
+*/
+
 &iomuxc {
 	vf610-colibri {
-		pinctrl_gpiopwr: gpiopwr {
+		pinctrl_power: power {
 			fsl,pins = <
 				/* Power kill. SoDIMM 133 */
 				VF610_PAD_PTD9__GPIO_88		0x218d
 			>;
 		}; 
 
-		pinctrl_gpiokeys: gpiokeys {
+		pinctrl_leds: leds {
+			fsl,pins = <
+				/* DS2484R SLPZ pin, SoDIMM 127 */
+				VF610_PAD_PTD26__GPIO_68	0x1836
+			>;
+		};
+
+		pinctrl_keys: keys {
 			fsl,pins = <
 				/* Power Button. SoDIMM 47 */
 				VF610_PAD_PTB19__GPIO_41	0x218d
