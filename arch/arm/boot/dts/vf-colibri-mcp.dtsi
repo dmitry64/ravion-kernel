@@ -138,6 +138,7 @@
 
 	/* DS2782: Fuel Gauge Controller */
 	fgc: ds2782@34 {
+		status = "disabled";
 		compatible = "ds2782";
 		reg = <0x34>;
 	};

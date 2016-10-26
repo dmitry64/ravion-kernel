@@ -4,6 +4,7 @@ export CROSS_COMPILE=armv7a-neon-linux-gnueabi-
 export ARCH=arm
 export ROOT_FS_PATH=/cimc/root/armv7a-neon/exports
 export TFTP_FS_PATH=/cimc/exporttftp
+export BR_OVERLAY_PATH=/cimc/build/__git__/buildroot/output/overlay
 export DEF_TARGET="zImage modules vf500-colibri-ravion.dtb vf610-colibri-ravion.dtb"
 export DEF_ARGS="-j3 ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} \
 INSTALL_MOD_PATH=${ROOT_FS_PATH}"
@@ -22,6 +23,17 @@ if [ -z "$*" ]; then
     ${SUDO} cp -f arch/arm/boot/zImage ${TFTP_FS_PATH}/boot/zImage
     ${SUDO} cp -f arch/arm/boot/dts/vf500-colibri-ravion.dtb ${TFTP_FS_PATH}/boot/vf500.dtb
     ${SUDO} cp -f arch/arm/boot/dts/vf610-colibri-ravion.dtb ${TFTP_FS_PATH}/boot/vf610.dtb
+    if [ -d ${BR_OVERLAY_PATH} ]; then
+	rm -rf \
+	${BR_OVERLAY_PATH}/lib/modules/* \
+	${BR_OVERLAY_PATH}/boot/zImage  \
+	${BR_OVERLAY_PATH}/boot/vf500.dtb \
+	${BR_OVERLAY_PATH}/boot/vf610.dtb
+	cp -rf ${ROOT_FS_PATH}/lib/modules/*	${BR_OVERLAY_PATH}/lib/modules/
+	cp ${ROOT_FS_PATH}/boot/zImage		${BR_OVERLAY_PATH}/boot/
+	cp ${ROOT_FS_PATH}/boot/vf500.dtb	${BR_OVERLAY_PATH}/boot/
+	cp ${ROOT_FS_PATH}/boot/vf610.dtb 	${BR_OVERLAY_PATH}/boot/
+    fi
 else
     make ${DEF_ARGS} $*
 fi
