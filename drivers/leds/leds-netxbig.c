@@ -21,7 +21,6 @@
  */
 
 #include <linux/module.h>
-#include <linux/init.h>
 #include <linux/irq.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
@@ -410,7 +409,6 @@ static struct platform_driver netxbig_led_driver = {
 	.remove		= netxbig_led_remove,
 	.driver		= {
 		.name	= "leds-netxbig",
-		.owner	= THIS_MODULE,
 	},
 };
 

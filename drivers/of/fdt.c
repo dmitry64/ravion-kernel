@@ -202,6 +202,12 @@ static void * unflatten_dt_node(struct boot_param_header *blob,
 				__alignof__(struct device_node));
 	if (allnextpp) {
 		char *fn;
+
+		/* of_node_init(np); throws runtime errors
+		 * 'tried to init an initialized object'
+		 * thus only set the type here. Sideeffect from backporting extcon */
+		np->fwnode.type = FWNODE_OF;
+
 		np->full_name = fn = ((char *)np) + sizeof(*np);
 		if (new_format) {
 			/* rebuild full path for new format */
@@ -232,7 +238,6 @@ static void * unflatten_dt_node(struct boot_param_header *blob,
 				dad->next->sibling = np;
 			dad->next = np;
 		}
-		kref_init(&np->kref);
 	}
 	/* process properties */
 	while (1) {
@@ -327,6 +332,8 @@ static void * unflatten_dt_node(struct boot_param_header *blob,
 			np->name = "<NULL>";
 		if (!np->type)
 			np->type = "<NULL>";
+
+		of_node_add(np);
 	}
 	while (tag == OF_DT_BEGIN_NODE || tag == OF_DT_NOP) {
 		if (tag == OF_DT_NOP)

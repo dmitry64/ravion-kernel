@@ -49,17 +49,6 @@
 
 #define STMPE_IRQ_TOUCH_DET		0
 
-#define SAMPLE_TIME(x)			((x & 0xf) << 4)
-#define MOD_12B(x)			((x & 0x1) << 3)
-#define REF_SEL(x)			((x & 0x1) << 1)
-#define ADC_FREQ(x)			(x & 0x3)
-#define AVE_CTRL(x)			((x & 0x3) << 6)
-#define DET_DELAY(x)			((x & 0x7) << 3)
-#define SETTLING(x)			(x & 0x7)
-#define FRACTION_Z(x)			(x & 0x7)
-#define I_DRIVE(x)			(x & 0x1)
-#define OP_MODE(x)			((x & 0x7) << 1)
-
 #define STMPE_TS_NAME			"stmpe-ts"
 #define XY_MASK				0xfff
 
@@ -164,7 +153,7 @@ static irqreturn_t stmpe_ts_handler(int irq, void *data)
 			STMPE_TSC_CTRL_TSC_EN, STMPE_TSC_CTRL_TSC_EN);
 
 	/* start polling for touch_det to detect release */
-	schedule_delayed_work(&ts->work, HZ / 50);
+	schedule_delayed_work(&ts->work, HZ / 10);
 
 	return IRQ_HANDLED;
 }

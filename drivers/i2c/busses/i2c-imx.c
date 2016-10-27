@@ -52,6 +52,7 @@
 #include <linux/slab.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/of_gpio.h>
 #include <linux/platform_data/i2c-imx.h>
 
 /** Defines ********************************************************************
@@ -458,7 +459,7 @@ static int i2c_imx_write(struct imx_i2c_struct *i2c_imx, struct i2c_msg *msgs)
 	return 0;
 }
 
-static int i2c_imx_read(struct imx_i2c_struct *i2c_imx, struct i2c_msg *msgs)
+static int i2c_imx_read(struct imx_i2c_struct *i2c_imx, struct i2c_msg *msgs, bool is_lastmsg)
 {
 	int i, result;
 	unsigned int temp;
@@ -494,15 +495,30 @@ static int i2c_imx_read(struct imx_i2c_struct *i2c_imx, struct i2c_msg *msgs)
 		if (result)
 			return result;
 		if (i == (msgs->len - 1)) {
-			/* It must generate STOP before read I2DR to prevent
-			   controller from generating another clock cycle */
-			dev_dbg(&i2c_imx->adapter.dev,
-				"<%s> clear MSTA\n", __func__);
-			temp = imx_i2c_read_reg(i2c_imx, IMX_I2C_I2CR);
-			temp &= ~(I2CR_MSTA | I2CR_MTX);
-			imx_i2c_write_reg(temp, i2c_imx, IMX_I2C_I2CR);
-			i2c_imx_bus_busy(i2c_imx, 0);
-			i2c_imx->stopped = 1;
+			if (is_lastmsg) {
+				/*
+				 * It must generate STOP before read I2DR to prevent
+				 * controller from generating another clock cycle
+				 */
+				dev_dbg(&i2c_imx->adapter.dev,
+					"<%s> clear MSTA\n", __func__);
+				temp = imx_i2c_read_reg(i2c_imx, IMX_I2C_I2CR);
+				temp &= ~(I2CR_MSTA | I2CR_MTX);
+				imx_i2c_write_reg(temp, i2c_imx, IMX_I2C_I2CR);
+				i2c_imx_bus_busy(i2c_imx, 0);
+				i2c_imx->stopped = 1;
+			} else {
+				/*
+				 * For i2c master receiver repeat restart operation like:
+				 * read -> repeat MSTA -> read/write
+				 * The controller must set MTX before read the last byte in
+				 * the first read operation, otherwise the first read cost
+				 * one extra clock cycle.
+				 */
+				temp = readb(i2c_imx->base + IMX_I2C_I2CR);
+				temp |= I2CR_MTX;
+				writeb(temp, i2c_imx->base + IMX_I2C_I2CR);
+			}
 		} else if (i == (msgs->len - 2)) {
 			dev_dbg(&i2c_imx->adapter.dev,
 				"<%s> set TXAK\n", __func__);
@@ -523,6 +539,7 @@ static int i2c_imx_xfer(struct i2c_adapter *adapter,
 {
 	unsigned int i, temp;
 	int result;
+	bool is_lastmsg = false;
 	struct imx_i2c_struct *i2c_imx = i2c_get_adapdata(adapter);
 
 	dev_dbg(&i2c_imx->adapter.dev, "<%s>\n", __func__);
@@ -534,6 +551,9 @@ static int i2c_imx_xfer(struct i2c_adapter *adapter,
 
 	/* read/write data */
 	for (i = 0; i < num; i++) {
+		if (i == num - 1)
+			is_lastmsg = true;
+
 		if (i) {
 			dev_dbg(&i2c_imx->adapter.dev,
 				"<%s> repeated start\n", __func__);
@@ -564,7 +584,7 @@ static int i2c_imx_xfer(struct i2c_adapter *adapter,
 			(temp & I2SR_RXAK ? 1 : 0));
 #endif
 		if (msgs[i].flags & I2C_M_RD)
-			result = i2c_imx_read(i2c_imx, &msgs[i]);
+			result = i2c_imx_read(i2c_imx, &msgs[i], is_lastmsg);
 		else
 			result = i2c_imx_write(i2c_imx, &msgs[i]);
 		if (result)
@@ -591,16 +611,71 @@ static struct i2c_algorithm i2c_imx_algo = {
 	.functionality	= i2c_imx_func,
 };
 
+static int of_i2c_imx_get_pins(struct device_node *np,
+				unsigned int *sda_pin, unsigned int *scl_pin)
+{
+	if (of_gpio_count(np) < 2)
+		return -ENODEV;
+
+	*sda_pin = of_get_gpio(np, 0);
+	*scl_pin = of_get_gpio(np, 1);
+	if (!gpio_is_valid(*sda_pin) || !gpio_is_valid(*scl_pin)) {
+		pr_err("%s: invalid GPIO pins, sda=%d/scl=%d\n",
+		       np->full_name, *sda_pin, *scl_pin);
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
+/* i2c bus recovery routines */
+static int get_scl_gpio_value(struct i2c_adapter *adap)
+{
+	return gpio_get_value(adap->bus_recovery_info->scl_gpio);
+}
+
+static void set_scl_gpio_value(struct i2c_adapter *adap, int val)
+{
+	gpio_set_value(adap->bus_recovery_info->scl_gpio, val);
+}
+
+static int get_sda_gpio_value(struct i2c_adapter *adap)
+{
+	return gpio_get_value(adap->bus_recovery_info->sda_gpio);
+}
+
+int i2c_imx_recover_bus(struct i2c_adapter *adap)
+{
+	/* i2c_imx_(un)prepare_recovery can not be used for pinmuxing, as we
+	 *  need the data from struct i2c_adapter */
+	int ret;
+
+	if(!devm_pinctrl_get_select(adap->dev.parent, "recovery")) {
+		dev_err(adap->dev.parent, "%s> switching to 'recover' pinmux failed\n", __func__);
+	}
+
+	ret = i2c_generic_gpio_recovery(adap);
+
+	if(!devm_pinctrl_get_select_default(adap->dev.parent)) {
+		dev_err(adap->dev.parent, "<%s> switching from 'recover' to 'default' pinmux failed\n", __func__);
+	}
+
+	return ret;
+}
+
 static int i2c_imx_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *of_id = of_match_device(i2c_imx_dt_ids,
 							   &pdev->dev);
 	struct imx_i2c_struct *i2c_imx;
+	struct i2c_bus_recovery_info *bri;
 	struct resource *res;
 	struct imxi2c_platform_data *pdata = dev_get_platdata(&pdev->dev);
 	void __iomem *base;
 	int irq, ret;
 	u32 bitrate;
+	int sda_gpio = -1;
+	int scl_gpio = -1;
 
 	dev_dbg(&pdev->dev, "<%s>\n", __func__);
 
@@ -650,8 +725,8 @@ static int i2c_imx_probe(struct platform_device *pdev)
 		return ret;
 	}
 	/* Request IRQ */
-	ret = devm_request_irq(&pdev->dev, irq, i2c_imx_isr, 0,
-				pdev->name, i2c_imx);
+	ret = devm_request_irq(&pdev->dev, irq, i2c_imx_isr,
+			       IRQF_NO_SUSPEND, pdev->name, i2c_imx);
 	if (ret) {
 		dev_err(&pdev->dev, "can't claim irq %d\n", irq);
 		return ret;
@@ -662,6 +737,23 @@ static int i2c_imx_probe(struct platform_device *pdev)
 
 	/* Set up adapter data */
 	i2c_set_adapdata(&i2c_imx->adapter, i2c_imx);
+
+	/* Set up adapter recovery info */
+	if (of_i2c_imx_get_pins(pdev->dev.of_node, &sda_gpio, &scl_gpio) >= 0) {
+		bri = devm_kzalloc(&pdev->dev,
+			sizeof(struct i2c_bus_recovery_info), GFP_KERNEL);
+		if (!bri)
+			dev_info(&pdev->dev, "can't allocate i2c recovery struct, recovery will not work\n");
+		else {
+			bri->recover_bus = i2c_imx_recover_bus;
+			bri->get_sda = get_sda_gpio_value;
+			bri->get_scl = get_scl_gpio_value;
+			bri->set_scl = set_scl_gpio_value;
+			bri->sda_gpio = sda_gpio;
+			bri->scl_gpio = scl_gpio;
+			i2c_imx->adapter.bus_recovery_info = bri;
+		}
+	}
 
 	/* Set up clock divider */
 	bitrate = IMX_I2C_BIT_RATE;
@@ -716,13 +808,33 @@ static int i2c_imx_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM_SLEEP
+static int i2c_imx_suspend(struct device *dev)
+{
+	pinctrl_pm_select_sleep_state(dev);
+	return 0;
+}
+
+static int i2c_imx_resume(struct device *dev)
+{
+	pinctrl_pm_select_default_state(dev);
+	return 0;
+}
+
+static SIMPLE_DEV_PM_OPS(imx_i2c_pm, i2c_imx_suspend, i2c_imx_resume);
+#define IMX_I2C_PM	(&imx_i2c_pm)
+#else
+#define IMX_I2C_PM	NULL
+#endif
+
 static struct platform_driver i2c_imx_driver = {
 	.probe = i2c_imx_probe,
 	.remove = i2c_imx_remove,
 	.driver	= {
-		.name	= DRIVER_NAME,
-		.owner	= THIS_MODULE,
+		.name = DRIVER_NAME,
+		.owner = THIS_MODULE,
 		.of_match_table = i2c_imx_dt_ids,
+		.pm = IMX_I2C_PM,
 	},
 	.id_table	= imx_i2c_devtype,
 };

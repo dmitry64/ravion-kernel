@@ -1232,11 +1232,11 @@ static int parse_cgroupfs_options(char *data, struct cgroup_sb_opts *opts)
 	 * otherwise if 'none', 'name=' and a subsystem name options
 	 * were not specified, let's default to 'all'
 	 */
-	if (all_ss || (!one_ss && !opts->none && !opts->name))
+	if (all_ss || (!one_ss && !opts->none && !opts->name)) {
 		for_each_subsys(ss, i)
 			if (!ss->disabled)
 				set_bit(i, &opts->subsys_mask);
-
+	}
 	/* Consistency checks */
 
 	if (opts->flags & CGRP_ROOT_SANE_BEHAVIOR) {
@@ -3836,7 +3836,7 @@ static int cgroup_pidlist_show(struct seq_file *s, void *v)
  * seq_operations functions for iterating on pidlists through seq_file -
  * independent of whether it's tasks or procs
  */
-static const struct seq_operations cgroup_pidlist_seq_operations = {
+static const struct seq_operations cgroup_pidlist_seq_operations __maybe_unused = {
 	.start = cgroup_pidlist_start,
 	.stop = cgroup_pidlist_stop,
 	.next = cgroup_pidlist_next,

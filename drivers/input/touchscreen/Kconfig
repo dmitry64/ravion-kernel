@@ -86,6 +86,16 @@ config TOUCHSCREEN_AD7879_SPI
 	  To compile this driver as a module, choose M here: the
 	  module will be called ad7879-spi.
 
+config TOUCHSCREEN_AR1020_I2C
+	tristate "Microchip AR1020 I2C touchscreen"
+	depends on I2C
+	help
+	  Say Y here if you have a Microchip AR1020 I2C Controller and
+	  want to enable support for the built-in touchscreen.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called ar1020-i2c.
+
 config TOUCHSCREEN_ATMEL_MXT
 	tristate "Atmel mXT I2C Touchscreen"
 	depends on I2C
@@ -265,6 +275,18 @@ config TOUCHSCREEN_EGALAX
 	  To compile this driver as a module, choose M here: the
 	  module will be called egalax_ts.
 
+config TOUCHSCREEN_ELAN
+	tristate "ELAN touchscreen input driver"
+	depends on I2C
+	help
+	  Say Y here if you have an I2C ELAN touchscreen
+	  attached.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called elan-touch.
+
 config TOUCHSCREEN_FUJITSU
 	tristate "Fujitsu serial touchscreen"
 	select SERIO
@@ -277,6 +299,13 @@ config TOUCHSCREEN_FUJITSU
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called fujitsu-ts.
+
+config TOUCHSCREEN_FUSION_F0710A
+	tristate "TouchRevolution Fusion F0710A Touchscreens"
+	depends on I2C
+	help
+	  Say Y here if you want to support the multi-touch input driver for
+	  the TouchRevolution Fusion 7 and 10 panels.
 
 config TOUCHSCREEN_ILI210X
 	tristate "Ilitek ILI210X based touchscreen"
@@ -429,6 +458,18 @@ config TOUCHSCREEN_INTEL_MID
 	help
 	  Say Y here if you have a Intel MID based touchscreen in
 	  your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called intel_mid_touch.
+
+config TOUCHSCREEN_IMX6UL_TSC
+	tristate "Freescale i.MX6UL touchscreen controller"
+	depends on OF
+	help
+	  Say Y here if you have a Freescale i.MX6UL, and want to
+	  use the internel touchscreen controller.
 
 	  If unsure, say N.
 

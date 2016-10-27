@@ -12,7 +12,6 @@
  */
 
 #include <linux/module.h>
-#include <linux/init.h>
 #include <linux/leds.h>
 #include <linux/mfd/core.h>
 #include <linux/mutex.h>
@@ -771,7 +770,6 @@ static void lm3533_led_shutdown(struct platform_device *pdev)
 static struct platform_driver lm3533_led_driver = {
 	.driver = {
 		.name = "lm3533-leds",
-		.owner = THIS_MODULE,
 	},
 	.probe		= lm3533_led_probe,
 	.remove		= lm3533_led_remove,

@@ -11,7 +11,6 @@
  */
 
 #include <linux/kernel.h>
-#include <linux/init.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/i2c.h>
@@ -239,7 +238,6 @@ static int pm860x_led_remove(struct platform_device *pdev)
 static struct platform_driver pm860x_led_driver = {
 	.driver	= {
 		.name	= "88pm860x-led",
-		.owner	= THIS_MODULE,
 	},
 	.probe	= pm860x_led_probe,
 	.remove	= pm860x_led_remove,

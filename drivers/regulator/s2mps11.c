@@ -65,7 +65,7 @@ static int s2mps11_regulator_set_voltage_time_sel(struct regulator_dev *rdev,
 	unsigned int ramp_delay = 0;
 	int old_volt, new_volt;
 
-	switch (rdev->desc->id) {
+	switch (rdev_get_id(rdev)) {
 	case S2MPS11_BUCK2:
 		ramp_delay = s2mps11->ramp_delay2;
 		break;
@@ -105,7 +105,7 @@ static int s2mps11_set_ramp_delay(struct regulator_dev *rdev, int ramp_delay)
 	unsigned int ramp_enable = 1, enable_shift = 0;
 	int ret;
 
-	switch (rdev->desc->id) {
+	switch (rdev_get_id(rdev)) {
 	case S2MPS11_BUCK1:
 		if (ramp_delay > s2mps11->ramp_delay16)
 			s2mps11->ramp_delay16 = ramp_delay;
@@ -402,7 +402,7 @@ static int s2mps11_pmic_probe(struct platform_device *pdev)
 	struct sec_platform_data *pdata = dev_get_platdata(iodev->dev);
 	struct of_regulator_match rdata[S2MPS11_REGULATOR_MAX];
 	struct device_node *reg_np = NULL;
-	struct regulator_config config = { };
+	struct regulator_config config = { .ena_gpio = -ENODEV };
 	struct s2mps11_info *s2mps11;
 	int i, ret;
 

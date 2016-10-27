@@ -14,7 +14,6 @@
 
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/leds.h>
 #include <linux/workqueue.h>
@@ -201,7 +200,6 @@ static int da9052_led_remove(struct platform_device *pdev)
 static struct platform_driver da9052_led_driver = {
 	.driver		= {
 		.name	= "da9052-leds",
-		.owner	= THIS_MODULE,
 	},
 	.probe		= da9052_led_probe,
 	.remove		= da9052_led_remove,

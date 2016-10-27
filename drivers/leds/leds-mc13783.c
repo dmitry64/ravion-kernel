@@ -17,7 +17,6 @@
 
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/leds.h>
 #include <linux/workqueue.h>
@@ -256,7 +255,6 @@ MODULE_DEVICE_TABLE(platform, mc13xxx_led_id_table);
 static struct platform_driver mc13xxx_led_driver = {
 	.driver	= {
 		.name	= "mc13xxx-led",
-		.owner	= THIS_MODULE,
 	},
 	.remove		= mc13xxx_led_remove,
 	.id_table	= mc13xxx_led_id_table,

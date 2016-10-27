@@ -163,6 +163,21 @@ config MFD_DA9063
 	  Additional drivers must be enabled in order to use the functionality
 	  of the device.
 
+config MFD_MXC_HDMI
+	tristate "Freescale HDMI Core"
+	select MFD_CORE
+	help
+	  This is the core driver for the Freescale i.MX6 on-chip HDMI.
+	  This MFD driver connects with the video and audio drivers for HDMI.
+
+config MFD_MXC_HDMI_ANDROID
+	tristate "Freescale HDMI Core for Android"
+	select MFD_CORE
+	depends on MFD_MXC_HDMI=y
+	help
+	  This is the core driver for the Freescale i.MX6 on-chip HDMI.
+	  This MFD driver connects with the video and audio drivers for HDMI.
+
 config MFD_MC13XXX
 	tristate
 	depends on (SPI_MASTER || I2C)
@@ -316,6 +331,13 @@ config MFD_88PM860X
 	  This includes the I2C driver and the core APIs _only_, you have to
 	  select individual components like voltage regulators, RTC and
 	  battery-charger under the corresponding menus.
+
+config MFD_MAX17135
+    tristate "Maxim MAX17135 EPD PMIC core"
+        depends on I2C
+    help
+      This is the MAX17135 PMIC support. It includes
+      core support for communication with the MAX17135 chip.
 
 config MFD_MAX14577
 	bool "Maxim Semiconductor MAX14577 MUIC + Charger Support"
@@ -530,6 +552,28 @@ config MFD_RC5T583
 	  Additional drivers must be enabled in order to use the
 	  different functionality of the device.
 
+config MFD_RN5T567
+	tristate "Ricoh RN5T567 PMIC"
+	depends on I2C
+	select MFD_CORE
+	select REGMAP_I2C
+	help
+	  Say yes here to add support for the Ricoh RN5T567 PMIC. This
+	  driver provides common support for accessing the device,
+	  additional drivers must be enabled in order to use the
+	  functionality of the device.
+
+config MFD_RN5T618
+	tristate "Ricoh RN5T618 PMIC"
+	depends on I2C
+	select MFD_CORE
+	select REGMAP_I2C
+	help
+	  Say yes here to add support for the Ricoh RN5T618 PMIC. This
+	  driver provides common support for accessing the device,
+	  additional drivers must be enabled in order to use the
+	  functionality of the device.
+
 config MFD_SEC_CORE
 	bool "SAMSUNG Electronics PMIC Series Support"
 	depends on I2C=y
@@ -667,7 +711,7 @@ config MFD_STMPE
 
 	  Currently supported devices are:
 
-		STMPE811: GPIO, Touchscreen
+		STMPE811: GPIO, Touchscreen, ADC
 		STMPE1601: GPIO, Keypad
 		STMPE1801: GPIO, Keypad
 		STMPE2401: GPIO, Keypad
@@ -680,6 +724,7 @@ config MFD_STMPE
 		GPIO: stmpe-gpio
 		Keypad: stmpe-keypad
 		Touchscreen: stmpe-ts
+		ADC: stmpe-adc
 
 menu "STMicroelectronics STMPE Interface Drivers"
 depends on MFD_STMPE

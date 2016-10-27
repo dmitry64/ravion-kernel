@@ -28,18 +28,19 @@
 #include <linux/errno.h>
 #include <linux/ioport.h>	/* for struct resource */
 #include <linux/device.h>
-
-#ifdef	CONFIG_ACPI
+#include <linux/property.h>
 
 #ifndef _LINUX
 #define _LINUX
 #endif
+#include <acpi/acpi.h>
+
+#ifdef	CONFIG_ACPI
 
 #include <linux/list.h>
 #include <linux/mod_devicetable.h>
 #include <linux/dynamic_debug.h>
 
-#include <acpi/acpi.h>
 #include <acpi/acpi_bus.h>
 #include <acpi/acpi_drivers.h>
 #include <acpi/acpi_numa.h>
@@ -431,6 +432,23 @@ int acpi_device_modalias(struct device *, char *, int);
 #define ACPI_COMPANION_SET(dev, adev)	do { } while (0)
 #define ACPI_HANDLE(dev)		(NULL)
 
+struct fwnode_handle;
+
+static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+{
+	return false;
+}
+
+static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
+{
+	return NULL;
+}
+
+static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+{
+	return NULL;
+}
+
 static inline const char *acpi_dev_name(struct acpi_device *adev)
 {
 	return NULL;
@@ -642,6 +660,86 @@ do {									\
 	0;								\
 })
 #endif
+#endif
+
+/* Device properties */
+
+#define MAX_ACPI_REFERENCE_ARGS	8
+struct acpi_reference_args {
+	struct acpi_device *adev;
+	size_t nargs;
+	u64 args[MAX_ACPI_REFERENCE_ARGS];
+};
+
+#ifdef CONFIG_ACPI
+int acpi_dev_get_property(struct acpi_device *adev, const char *name,
+			  acpi_object_type type, const union acpi_object **obj);
+int acpi_dev_get_property_array(struct acpi_device *adev, const char *name,
+				acpi_object_type type,
+				const union acpi_object **obj);
+int acpi_dev_get_property_reference(struct acpi_device *adev, const char *name,
+				    const char *cells_name, size_t index,
+				    struct acpi_reference_args *args);
+
+int acpi_dev_prop_get(struct acpi_device *adev, const char *propname,
+		      void **valptr);
+int acpi_dev_prop_read_single(struct acpi_device *adev, const char *propname,
+			      enum dev_prop_type proptype, void *val);
+int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
+		       enum dev_prop_type proptype, void *val, size_t nval);
+
+struct acpi_device *acpi_get_next_child(struct device *dev,
+					struct acpi_device *child);
+#else
+static inline int acpi_dev_get_property(struct acpi_device *adev,
+					const char *name, acpi_object_type type,
+					const union acpi_object **obj)
+{
+	return -ENXIO;
+}
+static inline int acpi_dev_get_property_array(struct acpi_device *adev,
+					      const char *name,
+					      acpi_object_type type,
+					      const union acpi_object **obj)
+{
+	return -ENXIO;
+}
+static inline int acpi_dev_get_property_reference(struct acpi_device *adev,
+				const char *name, const char *cells_name,
+				size_t index, struct acpi_reference_args *args)
+{
+	return -ENXIO;
+}
+
+static inline int acpi_dev_prop_get(struct acpi_device *adev,
+				    const char *propname,
+				    void **valptr)
+{
+	return -ENXIO;
+}
+
+static inline int acpi_dev_prop_read_single(struct acpi_device *adev,
+					    const char *propname,
+					    enum dev_prop_type proptype,
+					    void *val)
+{
+	return -ENXIO;
+}
+
+static inline int acpi_dev_prop_read(struct acpi_device *adev,
+				     const char *propname,
+				     enum dev_prop_type proptype,
+				     void *val, size_t nval)
+{
+	return -ENXIO;
+}
+
+static inline struct acpi_device *acpi_get_next_child(struct device *dev,
+						      struct acpi_device *child)
+{
+	return NULL;
+}
+
 #endif
 
 #endif	/*_LINUX_ACPI_H*/

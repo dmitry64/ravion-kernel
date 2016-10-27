@@ -2307,17 +2307,23 @@ static struct gpio_desc *of_find_gpio(struct device *dev, const char *con_id,
 				      unsigned int idx,
 				      enum gpio_lookup_flags *flags)
 {
+	static const char *suffixes[] = { "gpios", "gpio" };
 	char prop_name[32]; /* 32 is max size of property name */
 	enum of_gpio_flags of_flags;
 	struct gpio_desc *desc;
+	unsigned int i;
 
-	if (con_id)
-		snprintf(prop_name, 32, "%s-gpios", con_id);
-	else
-		snprintf(prop_name, 32, "gpios");
+	for (i = 0; i < ARRAY_SIZE(suffixes); i++) {
+		if (con_id)
+			snprintf(prop_name, 32, "%s-%s", con_id, suffixes[i]);
+		else
+			snprintf(prop_name, 32, "%s", suffixes[i]);
 
-	desc = of_get_named_gpiod_flags(dev->of_node, prop_name, idx,
-					&of_flags);
+		desc = of_get_named_gpiod_flags(dev->of_node, prop_name, idx,
+						&of_flags);
+		if (!IS_ERR(desc))
+			break;
+	}
 
 	if (IS_ERR(desc))
 		return desc;
@@ -2340,14 +2346,36 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
 					unsigned int idx,
 					enum gpio_lookup_flags *flags)
 {
+	static const char * const suffixes[] = { "gpios", "gpio" };
+	struct acpi_device *adev = ACPI_COMPANION(dev);
 	struct acpi_gpio_info info;
 	struct gpio_desc *desc;
+	char propname[32];
+	int i;
 
-	desc = acpi_get_gpiod_by_index(dev, idx, &info);
-	if (IS_ERR(desc))
-		return desc;
+	/* Try first from _DSD */
+	for (i = 0; i < ARRAY_SIZE(suffixes); i++) {
+		if (con_id && strcmp(con_id, "gpios")) {
+			snprintf(propname, sizeof(propname), "%s-%s",
+				 con_id, suffixes[i]);
+		} else {
+			snprintf(propname, sizeof(propname), "%s",
+				 suffixes[i]);
+		}
 
-	if (info.gpioint && info.active_low)
+		desc = acpi_get_gpiod_by_index(adev, propname, idx, &info);
+		if (!IS_ERR(desc) || (PTR_ERR(desc) == -EPROBE_DEFER))
+			break;
+	}
+
+	/* Then from plain _CRS GPIOs */
+	if (IS_ERR(desc)) {
+		desc = acpi_get_gpiod_by_index(adev, NULL, idx, &info);
+		if (IS_ERR(desc))
+			return desc;
+	}
+
+	if (info.active_low)
 		*flags |= GPIO_ACTIVE_LOW;
 
 	return desc;
@@ -2435,22 +2463,43 @@ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
  * gpio_get - obtain a GPIO for a given GPIO function
  * @dev:	GPIO consumer, can be NULL for system-global GPIOs
  * @con_id:	function within the GPIO consumer
+ * @flags:	optional GPIO initialization flags
  *
  * Return the GPIO descriptor corresponding to the function con_id of device
  * dev, -ENOENT if no GPIO has been assigned to the requested function, or
  * another IS_ERR() code if an error occured while trying to acquire the GPIO.
  */
-struct gpio_desc *__must_check gpiod_get(struct device *dev, const char *con_id)
+struct gpio_desc *__must_check __gpiod_get(struct device *dev, const char *con_id,
+					 enum gpiod_flags flags)
 {
-	return gpiod_get_index(dev, con_id, 0);
+	return gpiod_get_index(dev, con_id, 0, flags);
 }
-EXPORT_SYMBOL_GPL(gpiod_get);
+EXPORT_SYMBOL_GPL(__gpiod_get);
+
+/**
+ * gpiod_get_optional - obtain an optional GPIO for a given GPIO function
+ * @dev: GPIO consumer, can be NULL for system-global GPIOs
+ * @con_id: function within the GPIO consumer
+ * @flags: optional GPIO initialization flags
+ *
+ * This is equivalent to gpiod_get(), except that when no GPIO was assigned to
+ * the requested function it will return NULL. This is convenient for drivers
+ * that need to handle optional GPIOs.
+ */
+struct gpio_desc *__must_check __gpiod_get_optional(struct device *dev,
+						  const char *con_id,
+						  enum gpiod_flags flags)
+{
+	return gpiod_get_index_optional(dev, con_id, 0, flags);
+}
+EXPORT_SYMBOL_GPL(__gpiod_get_optional);
 
 /**
  * gpiod_get_index - obtain a GPIO from a multi-index GPIO function
  * @dev:	GPIO consumer, can be NULL for system-global GPIOs
  * @con_id:	function within the GPIO consumer
  * @idx:	index of the GPIO to obtain in the consumer
+ * @flags:	optional GPIO initialization flags
  *
  * This variant of gpiod_get() allows to access GPIOs other than the first
  * defined one for functions that define several GPIOs.
@@ -2459,23 +2508,24 @@ EXPORT_SYMBOL_GPL(gpiod_get);
  * requested function and/or index, or another IS_ERR() code if an error
  * occured while trying to acquire the GPIO.
  */
-struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
+struct gpio_desc *__must_check __gpiod_get_index(struct device *dev,
 					       const char *con_id,
-					       unsigned int idx)
+					       unsigned int idx,
+					       enum gpiod_flags flags)
 {
 	struct gpio_desc *desc = NULL;
 	int status;
-	enum gpio_lookup_flags flags = 0;
+	enum gpio_lookup_flags lookupflags = 0;
 
 	dev_dbg(dev, "GPIO lookup for consumer %s\n", con_id);
 
 	/* Using device tree? */
 	if (IS_ENABLED(CONFIG_OF) && dev && dev->of_node) {
 		dev_dbg(dev, "using device tree for GPIO lookup\n");
-		desc = of_find_gpio(dev, con_id, idx, &flags);
+		desc = of_find_gpio(dev, con_id, idx, &lookupflags);
 	} else if (IS_ENABLED(CONFIG_ACPI) && dev && ACPI_HANDLE(dev)) {
 		dev_dbg(dev, "using ACPI for GPIO lookup\n");
-		desc = acpi_find_gpio(dev, con_id, idx, &flags);
+		desc = acpi_find_gpio(dev, con_id, idx, &lookupflags);
 	}
 
 	/*
@@ -2484,7 +2534,7 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
 	 */
 	if (!desc || desc == ERR_PTR(-ENOENT)) {
 		dev_dbg(dev, "using lookup tables for GPIO lookup");
-		desc = gpiod_find(dev, con_id, idx, &flags);
+		desc = gpiod_find(dev, con_id, idx, &lookupflags);
 	}
 
 	if (IS_ERR(desc)) {
@@ -2497,16 +2547,117 @@ struct gpio_desc *__must_check gpiod_get_index(struct device *dev,
 	if (status < 0)
 		return ERR_PTR(status);
 
-	if (flags & GPIO_ACTIVE_LOW)
+	if (lookupflags & GPIO_ACTIVE_LOW)
 		set_bit(FLAG_ACTIVE_LOW, &desc->flags);
-	if (flags & GPIO_OPEN_DRAIN)
+	if (lookupflags & GPIO_OPEN_DRAIN)
 		set_bit(FLAG_OPEN_DRAIN, &desc->flags);
-	if (flags & GPIO_OPEN_SOURCE)
+	if (lookupflags & GPIO_OPEN_SOURCE)
 		set_bit(FLAG_OPEN_SOURCE, &desc->flags);
+
+	/* No particular flag request, return here... */
+	if (flags & GPIOD_FLAGS_BIT_DIR_SET)
+		return desc;
+
+	/* Process flags */
+	if (flags & GPIOD_FLAGS_BIT_DIR_OUT)
+		status = gpiod_direction_output(desc,
+					      flags & GPIOD_FLAGS_BIT_DIR_VAL);
+	else
+		status = gpiod_direction_input(desc);
+
+	if (status < 0) {
+		dev_dbg(dev, "setup of GPIO %s failed\n", con_id);
+		gpiod_put(desc);
+		return ERR_PTR(status);
+	}
 
 	return desc;
 }
-EXPORT_SYMBOL_GPL(gpiod_get_index);
+EXPORT_SYMBOL_GPL(__gpiod_get_index);
+
+/**
+ * fwnode_get_named_gpiod - obtain a GPIO from firmware node
+ * @fwnode:	handle of the firmware node
+ * @propname:	name of the firmware property representing the GPIO
+ *
+ * This function can be used for drivers that get their configuration
+ * from firmware.
+ *
+ * Function properly finds the corresponding GPIO using whatever is the
+ * underlying firmware interface and then makes sure that the GPIO
+ * descriptor is requested before it is returned to the caller.
+ *
+ * In case of error an ERR_PTR() is returned.
+ */
+struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
+					 const char *propname)
+{
+	struct gpio_desc *desc = ERR_PTR(-ENODEV);
+	bool active_low = false;
+	int ret;
+
+	if (!fwnode)
+		return ERR_PTR(-EINVAL);
+
+	if (is_of_node(fwnode)) {
+		enum of_gpio_flags flags;
+
+		desc = of_get_named_gpiod_flags(of_node(fwnode), propname, 0,
+						&flags);
+		if (!IS_ERR(desc))
+			active_low = flags & OF_GPIO_ACTIVE_LOW;
+	} else if (is_acpi_node(fwnode)) {
+		struct acpi_gpio_info info;
+
+		desc = acpi_get_gpiod_by_index(acpi_node(fwnode), propname, 0,
+					       &info);
+		if (!IS_ERR(desc))
+			active_low = info.active_low;
+	}
+
+	if (IS_ERR(desc))
+		return desc;
+
+	ret = gpiod_request(desc, NULL);
+	if (ret)
+		return ERR_PTR(ret);
+
+	/* Only value flag can be set from both DT and ACPI is active_low */
+	if (active_low)
+		set_bit(FLAG_ACTIVE_LOW, &desc->flags);
+
+	return desc;
+}
+EXPORT_SYMBOL_GPL(fwnode_get_named_gpiod);
+
+/**
+ * gpiod_get_index_optional - obtain an optional GPIO from a multi-index GPIO
+ *                            function
+ * @dev: GPIO consumer, can be NULL for system-global GPIOs
+ * @con_id: function within the GPIO consumer
+ * @index: index of the GPIO to obtain in the consumer
+ * @flags: optional GPIO initialization flags
+ *
+ * This is equivalent to gpiod_get_index(), except that when no GPIO with the
+ * specified index was assigned to the requested function it will return NULL.
+ * This is convenient for drivers that need to handle optional GPIOs.
+ */
+struct gpio_desc *__must_check __gpiod_get_index_optional(struct device *dev,
+							const char *con_id,
+							unsigned int index,
+							enum gpiod_flags flags)
+{
+	struct gpio_desc *desc;
+
+	desc = gpiod_get_index(dev, con_id, index, flags);
+	if (IS_ERR(desc)) {
+		if (PTR_ERR(desc) == -ENOENT)
+			return NULL;
+	}
+
+	return desc;
+}
+EXPORT_SYMBOL_GPL(__gpiod_get_index_optional);
 
 /**
  * gpiod_put - dispose of a GPIO descriptor

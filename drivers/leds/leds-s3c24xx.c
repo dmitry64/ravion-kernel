@@ -12,7 +12,6 @@
 */
 
 #include <linux/kernel.h>
-#include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/leds.h>
 #include <linux/gpio.h>
@@ -119,7 +118,6 @@ static struct platform_driver s3c24xx_led_driver = {
 	.remove		= s3c24xx_led_remove,
 	.driver		= {
 		.name		= "s3c24xx_led",
-		.owner		= THIS_MODULE,
 	},
 };
 

@@ -2061,7 +2061,15 @@ static struct mmc_blk_data *mmc_blk_alloc_req(struct mmc_card *card,
 	 * index anymore so we keep track of a name index.
 	 */
 	if (!subname) {
-		md->name_idx = find_first_zero_bit(name_use, max_devices);
+		int idx;
+
+		idx = mmc_get_reserved_index(card->host);
+		if (idx >= 0 && !test_bit(idx, name_use))
+			md->name_idx = idx;
+		else
+			md->name_idx = find_next_zero_bit(name_use, max_devices,
+					mmc_first_nonreserved_index());
+
 		__set_bit(md->name_idx, name_use);
 	} else
 		md->name_idx = ((struct mmc_blk_data *)
@@ -2222,7 +2230,8 @@ static int mmc_blk_alloc_parts(struct mmc_card *card, struct mmc_blk_data *md)
 		return 0;
 
 	for (idx = 0; idx < card->nr_parts; idx++) {
-		if (card->part[idx].size) {
+		if (card->part[idx].size && 
+		    !(card->part[idx].area_type & MMC_BLK_DATA_AREA_RPMB)) {
 			ret = mmc_blk_alloc_part(card, md,
 				card->part[idx].part_cfg,
 				card->part[idx].size >> 9,

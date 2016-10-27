@@ -176,10 +176,13 @@ static struct device_node * __init of_pdt_create_node(phandle node,
 		return NULL;
 
 	dp = prom_early_alloc(sizeof(*dp));
+	/* of_node_init(np); likely will throw runtime errors
+	 * 'tried to init an initialized object'
+	 * thus only set the type here. Sideeffect from backporting extcon */
+	np->fwnode.type = FWNODE_OF;
+
 	of_pdt_incr_unique_id(dp);
 	dp->parent = parent;
-
-	kref_init(&dp->kref);
 
 	dp->name = of_pdt_get_one_property(node, "name");
 	dp->type = of_pdt_get_one_property(node, "device_type");
@@ -215,6 +218,7 @@ static struct device_node * __init of_pdt_build_tree(struct device_node *parent,
 		*nextp = &dp->allnext;
 
 		dp->full_name = of_pdt_build_full_name(dp);
+		of_node_add(dp);
 
 		dp->child = of_pdt_build_tree(dp,
 				of_pdt_prom_ops->getchild(node), nextp);
@@ -245,6 +249,7 @@ void __init of_pdt_build_devicetree(phandle root_node, struct of_pdt_ops *ops)
 	of_allnodes->path_component_name = "";
 #endif
 	of_allnodes->full_name = "/";
+	of_node_add(of_allnodes);
 
 	nextp = &of_allnodes->allnext;
 	of_allnodes->child = of_pdt_build_tree(of_allnodes,

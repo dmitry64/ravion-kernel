@@ -149,6 +149,7 @@ void arch_cpu_idle_prepare(void)
 
 void arch_cpu_idle_enter(void)
 {
+	idle_notifier_call_chain(IDLE_START);
 	ledtrig_cpu(CPU_LED_IDLE_START);
 #ifdef CONFIG_PL310_ERRATA_769419
 	wmb();
@@ -158,6 +159,7 @@ void arch_cpu_idle_enter(void)
 void arch_cpu_idle_exit(void)
 {
 	ledtrig_cpu(CPU_LED_IDLE_END);
+	idle_notifier_call_chain(IDLE_END);
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -212,11 +214,15 @@ void machine_halt(void)
  */
 void machine_power_off(void)
 {
+	disable_nonboot_cpus();
 	local_irq_disable();
 	smp_send_stop();
 
 	if (pm_power_off)
 		pm_power_off();
+	/* shoud pm_power_off not exist of fail, then at least do a halt*/
+	pr_err("%s pm_power_off() did return\n",__func__);
+	machine_halt();
 }
 
 /*

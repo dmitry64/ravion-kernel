@@ -14,10 +14,6 @@ if EXTCON
 
 comment "Extcon Device Drivers"
 
-config OF_EXTCON
-	def_tristate y
-	depends on OF
-
 config EXTCON_GPIO
 	tristate "GPIO extcon support"
 	depends on GPIOLIB
@@ -73,5 +69,12 @@ config EXTCON_PALMAS
 	help
 	  Say Y here to enable support for USB peripheral and USB host
 	  detection by palmas usb.
+
+config EXTCON_USB_GPIO
+	tristate "USB GPIO extcon support"
+	depends on GPIOLIB
+	help
+	  Say Y here to enable GPIO based USB cable detection extcon support.
+	  Used typically if GPIO is used for USB ID pin detection.
 
 endif # MULTISTATE_SWITCH
