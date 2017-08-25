@@ -9,7 +9,7 @@ power_supply-objs += power_supply_leds.o
 endif
 
 ifeq ($(CONFIG_POWER_SUPPLY_DEBUG),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif
 
 obj-$(CONFIG_POWER_SUPPLY)	+= power_supply.o

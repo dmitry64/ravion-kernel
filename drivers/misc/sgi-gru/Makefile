@@ -1,5 +1,5 @@
 ifdef CONFIG_SGI_GRU_DEBUG
-  EXTRA_CFLAGS	+= -DDEBUG
+  ccflags-y	+= -DDEBUG
 endif
 
 obj-$(CONFIG_SGI_GRU) := gru.o

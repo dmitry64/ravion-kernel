@@ -9,5 +9,5 @@ obj-$(CONFIG_I2C_CHARDEV)	+= i2c-dev.o
 obj-y				+= algos/ busses/
 
 ifeq ($(CONFIG_I2C_DEBUG_CORE),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif

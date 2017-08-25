@@ -1,5 +1,5 @@
 ifeq ($(CONFIG_CB710_DEBUG),y)
-	EXTRA_CFLAGS		+= -DDEBUG
+	ccflags-y		+= -DDEBUG
 endif
 
 obj-$(CONFIG_CB710_CORE)	+= cb710.o

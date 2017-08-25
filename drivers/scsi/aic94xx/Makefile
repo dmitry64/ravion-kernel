@@ -23,7 +23,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 ifeq ($(CONFIG_AIC94XX_DEBUG),y)
-	EXTRA_CFLAGS += -DASD_DEBUG -DASD_ENTER_EXIT
+	ccflags-y += -DASD_DEBUG -DASD_ENTER_EXIT
 endif
 
 obj-$(CONFIG_SCSI_AIC94XX) += aic94xx.o

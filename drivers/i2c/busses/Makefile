@@ -80,5 +80,5 @@ obj-$(CONFIG_I2C_STMP378X)	+= i2c-stmp378x.o
 obj-$(CONFIG_I2C_MXS)		+= i2c-mxs.o
 
 ifeq ($(CONFIG_I2C_DEBUG_BUS),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif

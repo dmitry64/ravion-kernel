@@ -3,7 +3,7 @@
 #
 
 ifeq ($(CONFIG_SPI_DEBUG),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif
 
 # small core, mostly translating board-specific

@@ -32,7 +32,7 @@ endif
 # will work around it. If any other architecture displays this behavior,
 # add it here.
 ifeq ($(CONFIG_PPC32),y)
-EXTRA_CFLAGS := $(call cc-ifversion, -lt, 0400, -O1)
+ccflags-y := $(call cc-ifversion, -lt, 0400, -O1)
 endif
 
 TAGS:

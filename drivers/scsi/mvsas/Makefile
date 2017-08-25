@@ -22,7 +22,7 @@
 # USA
 
 ifeq ($(CONFIG_SCSI_MVSAS_DEBUG),y)
-	EXTRA_CFLAGS += -DMV_DEBUG
+	ccflags-y += -DMV_DEBUG
 endif
 
 obj-$(CONFIG_SCSI_MVSAS) += mvsas.o

@@ -22,7 +22,7 @@
 # USA
 
 ifeq ($(CONFIG_SCSI_SAS_LIBSAS_DEBUG),y)
-	EXTRA_CFLAGS += -DSAS_DEBUG
+	ccflags-y += -DSAS_DEBUG
 endif
 
 obj-$(CONFIG_SCSI_SAS_LIBSAS) += libsas.o

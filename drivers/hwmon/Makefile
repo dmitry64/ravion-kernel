@@ -108,6 +108,6 @@ obj-$(CONFIG_SENSORS_ISL29003)	+= isl29003.o
 obj-$(CONFIG_MXC_MMA7450)	+= mxc_mma7450.o
 
 ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif
 

@@ -6,6 +6,6 @@ zd1211rw-objs := zd_chip.o zd_mac.o \
 		zd_rf.o zd_usb.o
 
 ifeq ($(CONFIG_ZD1211RW_DEBUG),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif
 

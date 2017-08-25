@@ -17,5 +17,5 @@ endif
 obj-$(CONFIG_USB)	+= usbcore.o
 
 ifeq ($(CONFIG_USB_DEBUG),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif

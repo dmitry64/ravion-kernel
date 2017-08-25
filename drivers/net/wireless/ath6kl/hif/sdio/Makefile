@@ -58,9 +58,9 @@ _SDIO_STACK_MAKE_PARAMS := CT_BUILD_TYPE=$(ATH_BUILD_TYPE) \
                            CT_BUILD_OUTPUT_OVERRIDE=$(COMPILED_IMAGE_OBJECTS_PATH) \
                            BUS_BUILD=1
 endif
-EXTRA_CFLAGS += -I$(ATH_SRC_BASE)/hif/sdio/$(_HIF_SUB_TYPE)/include
-EXTRA_CFLAGS += -DSDIO
-EXTRA_CFLAGS += -I$(ATH_SDIO_STACK_BASE)/src/include
+ccflags-y += -I$(ATH_SRC_BASE)/hif/sdio/$(_HIF_SUB_TYPE)/include
+ccflags-y += -DSDIO
+ccflags-y += -I$(ATH_SDIO_STACK_BASE)/src/include
 
 ifeq ($(ATH_OS_SUB_TYPE),linux_2_4)
 obj-y += ../../hif/sdio/linux_athsdio/src/hif.o

@@ -3,7 +3,7 @@
 #
 
 ifeq ($(CONFIG_RTC_DEBUG),y)
-	EXTRA_CFLAGS		+= -DDEBUG
+	ccflags-y		+= -DDEBUG
 endif
 
 obj-$(CONFIG_RTC_LIB)		+= rtc-lib.o

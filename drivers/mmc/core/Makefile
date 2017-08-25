@@ -3,7 +3,7 @@
 #
 
 ifeq ($(CONFIG_MMC_DEBUG),y)
-	EXTRA_CFLAGS		+= -DDEBUG
+	ccflags-y		+= -DDEBUG
 endif
 
 obj-$(CONFIG_MMC)		+= mmc_core.o

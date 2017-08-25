@@ -2,7 +2,7 @@
 # USB peripheral controller drivers
 #
 ifeq ($(CONFIG_USB_GADGET_DEBUG),y)
-	EXTRA_CFLAGS		+= -DDEBUG
+	ccflags-y		+= -DDEBUG
 endif
 
 obj-$(CONFIG_USB_DUMMY_HCD)	+= dummy_hcd.o

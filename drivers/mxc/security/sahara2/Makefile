@@ -18,28 +18,28 @@ SOURCES = sah_driver_interface.c  sah_hardware_interface.c            \
 # DIAGS += -DDIAG_DURING_INTERRUPT
 
 # Turn on for lint-type checking
-#EXTRA_CFLAGS = -Wall -W -Wstrict-prototypes -Wmissing-prototypes
-EXTRA_CFLAGS += -DLINUX_KERNEL $(DIAGS)
+#ccflags-y = -Wall -W -Wstrict-prototypes -Wmissing-prototypes
+ccflags-y += -DLINUX_KERNEL $(DIAGS)
 
 
 ifeq ($(CONFIG_MXC_SAHARA_POLL_MODE),y)
-EXTRA_CFLAGS += -DSAHARA_POLL_MODE
-EXTRA_CFLAGS += -DSAHARA_POLL_MODE_TIMEOUT=$(CONFIG_SAHARA_POLL_MODE_TIMEOUT)
+ccflags-y += -DSAHARA_POLL_MODE
+ccflags-y += -DSAHARA_POLL_MODE_TIMEOUT=$(CONFIG_SAHARA_POLL_MODE_TIMEOUT)
 endif
 
 ifeq ($(CONFIG_MXC_SAHARA_USER_MODE),y)
-EXTRA_CFLAGS += -DSAHARA_USER_MODE
+ccflags-y += -DSAHARA_USER_MODE
 SOURCES +=
 endif
 
 ifeq ($(CONFIG_PM),y)
-EXTRA_CFLAGS += -DSAHARA_POWER_MANAGMENT
+ccflags-y += -DSAHARA_POWER_MANAGMENT
 endif
 
-EXTRA_CFLAGS += -Idrivers/mxc/security/sahara2/include
+ccflags-y += -Idrivers/mxc/security/sahara2/include
 
 # handle buggy BSP -- uncomment if these are undefined during build
-#EXTRA_CFLAGS += -DSAHARA_BASE_ADDR=HAC_BASE_ADDR -DINT_SAHARA=INT_HAC_RTIC
+#ccflags-y += -DSAHARA_BASE_ADDR=HAC_BASE_ADDR -DINT_SAHARA=INT_HAC_RTIC
 
 
 obj-$(CONFIG_MXC_SAHARA) += sahara.o

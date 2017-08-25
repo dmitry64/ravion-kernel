@@ -3,7 +3,7 @@
 #
 
 ifeq ($(CONFIG_USB_DEBUG),y)
-	EXTRA_CFLAGS		+= -DDEBUG
+	ccflags-y		+= -DDEBUG
 endif
 
 isp1760-objs := isp1760-hcd.o isp1760-if.o

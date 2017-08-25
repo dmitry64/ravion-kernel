@@ -26,5 +26,5 @@ obj-$(CONFIG_USB_SEVSEG)	+= usbsevseg.o
 obj-$(CONFIG_USB_SISUSBVGA)	+= sisusbvga/
 
 ifeq ($(CONFIG_USB_DEBUG),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif

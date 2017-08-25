@@ -1,4 +1,4 @@
-EXTRA_CFLAGS := \
+ccflags-y := \
 	-D_LINUX \
 	-I$(obj)/include \
 	-I$(obj)/include/api \

@@ -22,13 +22,13 @@ s2250-objs += s2250-board.o
 # Uncomment when the saa7134 patches get into upstream
 #ifneq ($(CONFIG_VIDEO_SAA7134),)
 #obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
-#EXTRA_CFLAGS += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
+#ccflags-y += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
 #endif
 
 # S2250 needs cypress ezusb loader from dvb-usb
 ifneq ($(CONFIG_VIDEO_GO7007_USB_S2250_BOARD),)
-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-usb
+ccflags-y += -Idrivers/media/dvb/dvb-usb
 endif
 
-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+ccflags-y += -Idrivers/media/dvb/frontends
+ccflags-y += -Idrivers/media/dvb/dvb-core
