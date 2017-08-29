@@ -101,6 +101,6 @@ obj-$(CONFIG_HAVE_STD_PC_SERIAL_PORT)	+= 8250-platform.o
 
 obj-$(CONFIG_MIPS_CPUFREQ)	+= cpufreq/
 
-EXTRA_CFLAGS += -Werror
+ccflags-y += -Werror
 
 CPPFLAGS_vmlinux.lds		:= $(KBUILD_CFLAGS)

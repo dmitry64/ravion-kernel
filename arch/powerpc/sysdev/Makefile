@@ -1,7 +1,7 @@
 subdir-ccflags-$(CONFIG_PPC_WERROR) := -Werror
 
 ifeq ($(CONFIG_PPC64),y)
-EXTRA_CFLAGS			+= -mno-minimal-toc
+ccflags-y			+= -mno-minimal-toc
 endif
 
 mpic-msi-obj-$(CONFIG_PCI_MSI)	+= mpic_msi.o mpic_u3msi.o mpic_pasemi_msi.o

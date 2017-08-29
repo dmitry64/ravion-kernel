@@ -17,4 +17,4 @@ obj-$(CONFIG_MIPS_DB1550)	+= db1x00/
 obj-$(CONFIG_MIPS_BOSPORUS)	+= db1x00/
 obj-$(CONFIG_MIPS_MIRAGE)	+= db1x00/
 
-EXTRA_CFLAGS += -Werror
+ccflags-y += -Werror

@@ -1,6 +1,6 @@
 
 ifeq ($(CONFIG_PM_DEBUG),y)
-EXTRA_CFLAGS	+=	-DDEBUG
+ccflags-y	+=	-DDEBUG
 endif
 
 obj-$(CONFIG_PM)		+= main.o

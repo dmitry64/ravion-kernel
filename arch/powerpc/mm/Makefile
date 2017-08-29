@@ -5,7 +5,7 @@
 subdir-ccflags-$(CONFIG_PPC_WERROR) := -Werror
 
 ifeq ($(CONFIG_PPC64),y)
-EXTRA_CFLAGS	+= -mno-minimal-toc
+ccflags-y	+= -mno-minimal-toc
 endif
 
 obj-y				:= fault.o mem.o pgtable.o gup.o \

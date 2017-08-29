@@ -18,7 +18,7 @@ selinux-$(CONFIG_SECURITY_NETWORK_XFRM) += xfrm.o
 
 selinux-$(CONFIG_NETLABEL) += netlabel.o
 
-EXTRA_CFLAGS += -Isecurity/selinux -Isecurity/selinux/include
+ccflags-y += -Isecurity/selinux -Isecurity/selinux/include
 
 $(obj)/avc.o: $(obj)/flask.h
 

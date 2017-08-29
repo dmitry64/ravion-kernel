@@ -16,6 +16,6 @@ rds_tcp-objs :=		tcp.o tcp_connect.o tcp_listen.o tcp_recv.o \
 			tcp_send.o tcp_stats.o
 
 ifeq ($(CONFIG_RDS_DEBUG), y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif
 

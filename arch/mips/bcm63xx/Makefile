@@ -4,4 +4,4 @@ obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
 
 obj-y		+= boards/
 
-EXTRA_CFLAGS += -Werror
+ccflags-y += -Werror

@@ -8,7 +8,7 @@
 # on the console port whenever a DBG interrupt occurs.  You have to
 # set up you HW breakpoints to trigger a DBG interrupt:
 #
-# EXTRA_CFLAGS += -DTRAP_DBG_INTERRUPT
+# ccflags-y += -DTRAP_DBG_INTERRUPT
 # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
 #
 

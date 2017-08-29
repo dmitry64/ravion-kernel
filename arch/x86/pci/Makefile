@@ -21,5 +21,5 @@ obj-y				+= amd_bus.o bus_numa.o
 obj-$(CONFIG_PCI_CNB20LE_QUIRK)	+= broadcom_bus.o
 
 ifeq ($(CONFIG_PCI_DEBUG),y)
-EXTRA_CFLAGS += -DDEBUG
+ccflags-y += -DDEBUG
 endif

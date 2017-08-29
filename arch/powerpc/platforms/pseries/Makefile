@@ -1,9 +1,9 @@
 ifeq ($(CONFIG_PPC64),y)
-EXTRA_CFLAGS		+= -mno-minimal-toc
+ccflags-y		+= -mno-minimal-toc
 endif
 
 ifeq ($(CONFIG_PPC_PSERIES_DEBUG),y)
-EXTRA_CFLAGS		+= -DDEBUG
+ccflags-y		+= -DDEBUG
 endif
 
 obj-y			:= lpar.o hvCall.o nvram.o reconfig.o \

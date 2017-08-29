@@ -10,4 +10,4 @@ obj-$(CONFIG_CS5536) += cs5536_pci.o cs5536_ide.o cs5536_acc.o cs5536_ohci.o \
 #
 obj-$(CONFIG_CS5536_MFGPT) += cs5536_mfgpt.o
 
-EXTRA_CFLAGS += -Werror
+ccflags-y += -Werror
