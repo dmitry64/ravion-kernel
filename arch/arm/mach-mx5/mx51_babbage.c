@@ -377,6 +377,19 @@ static struct fb_videomode video_modes[] = {
 	 FB_SYNC_CLK_LAT_FALL,
 	 FB_VMODE_NONINTERLACED,
 	 0,},
+	{
+	 /* 640x480 @ 57 Hz , pixel clk @ 25MHz */
+	 "MY-VGA", 57, 640, 480, 
+         40000,  // pixclock
+         144,     // left margin 
+         16,     // right margin 
+         33,     // upper margin 
+         12,     // low margin 
+         96,     // hsinc len  
+         2,     // vsinc len  
+	 FB_SYNC_CLK_LAT_FALL, //sync
+	 FB_VMODE_NONINTERLACED, // vmode
+	 0,},
 };
 
 struct cpu_wp *mx51_babbage_get_cpu_wp(int *wp)
