@@ -1318,7 +1318,7 @@ static void __init mx51_babbage_io_init(void)
 
 	/* GPO_2 */
 	gpio_request(BABBAGE_GPO_2, "gpo-2");
-	gpio_direction_output(BABBAGE_GPO_2, 0);
+	gpio_direction_output(BABBAGE_GPO_2, 1);
 
 	/* GPO_3 */
 	gpio_request(BABBAGE_GPO_3, "gpo-3");
