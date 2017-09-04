@@ -705,7 +705,6 @@ struct input_absinfo {
 #define ABS_VOLUME		0x20
 #define ABS_MISC		0x28
 
-#define ABS_MT_SLOT			0x2f    /* MT slot being modified */
 #define ABS_MT_TOUCH_MAJOR	0x30	/* Major axis of touching ellipse */
 #define ABS_MT_TOUCH_MINOR	0x31	/* Minor axis (omit if circular) */
 #define ABS_MT_WIDTH_MAJOR	0x32	/* Major axis of approaching ellipse */
