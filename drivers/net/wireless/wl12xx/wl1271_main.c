@@ -520,8 +520,12 @@ static int wl1271_fetch_firmware(struct wl1271 *wl)
 {
 	const struct firmware *fw;
 	int ret;
+	
+	printk(KERN_INFO "Loading WL firmware: %s\n", WL1271_FW_NAME);
 
 	ret = request_firmware(&fw, WL1271_FW_NAME, wl1271_wl_to_dev(wl));
+
+	printk(KERN_INFO "Loading finished, return code: %d\n",ret);
 
 	if (ret < 0) {
 		wl1271_error("could not get firmware: %d", ret);
@@ -558,8 +562,13 @@ static int wl1271_fetch_nvs(struct wl1271 *wl)
 {
 	const struct firmware *fw;
 	int ret;
+	
+	printk(KERN_INFO "Loading WL NVS firmware: %s\n", WL1271_NVS_NAME);
 
 	ret = request_firmware(&fw, WL1271_NVS_NAME, wl1271_wl_to_dev(wl));
+	
+	printk(KERN_INFO "Loading NVS finished, return code: %d\n",ret);
+	
 
 	if (ret < 0) {
 		wl1271_error("could not get nvs file: %d", ret);
