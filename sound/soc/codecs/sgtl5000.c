@@ -334,7 +334,6 @@ static int dac_get_volsw(struct snd_kcontrol *kcontrol,
 static int dac_put_volsw(struct snd_kcontrol *kcontrol,
 			 struct snd_ctl_elem_value *ucontrol)
 {
-	printk(KERN_DEBUG "dac_put_volsw\n");
 	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 	int reg, l, r;
 
@@ -409,7 +408,6 @@ static int sgtl5000_digital_mute(struct snd_soc_dai *codec_dai, int mute)
 
 static int sgtl5000_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
 {
-	printk(KERN_DEBUG "sgtl5000_set_dai_fmt\n");
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
 	u16 i2sctl = 0;
@@ -474,7 +472,6 @@ static int sgtl5000_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
 static int sgtl5000_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 				   int clk_id, unsigned int freq, int dir)
 {
-	printk(KERN_DEBUG "sgtl5000_set_dai_sysclk\n");
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
 
@@ -494,7 +491,6 @@ static int sgtl5000_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 static int sgtl5000_pcm_prepare(struct snd_pcm_substream *substream,
 				struct snd_soc_dai *dai)
 {
-	printk(KERN_DEBUG "sgtl5000_pcm_prepare\n");
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
@@ -524,7 +520,6 @@ static int sgtl5000_pcm_prepare(struct snd_pcm_substream *substream,
 static int sgtl5000_pcm_startup(struct snd_pcm_substream *substream,
 				struct snd_soc_dai *dai)
 {
-	printk(KERN_DEBUG "sgtl5000_pcm_startup\n");
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
@@ -570,7 +565,6 @@ static int sgtl5000_pcm_startup(struct snd_pcm_substream *substream,
 static void sgtl5000_pcm_shutdown(struct snd_pcm_substream *substream,
 				  struct snd_soc_dai *dai)
 {
-	printk(KERN_DEBUG "sgtl5000_pcm_shutdown\n");
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
@@ -615,7 +609,6 @@ static int sgtl5000_pcm_hw_params(struct snd_pcm_substream *substream,
 				  struct snd_pcm_hw_params *params,
 				  struct snd_soc_dai *dai)
 {
-	printk(KERN_DEBUG "sgtl5000_pcm_hw_params begin\n");
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
@@ -778,7 +771,6 @@ static int sgtl5000_pcm_hw_params(struct snd_pcm_substream *substream,
 	sgtl5000_write(codec, SGTL5000_CHIP_CLK_CTRL, clk_ctl);
 	sgtl5000_write(codec, SGTL5000_CHIP_I2S_CTRL, i2s_ctl);
 
-	printk(KERN_DEBUG "sgtl5000_pcm_hw_params end\n");
 	return 0;
 }
 
@@ -798,7 +790,6 @@ static void sgtl5000_mic_bias(struct snd_soc_codec *codec, int enable)
 static int sgtl5000_set_bias_level(struct snd_soc_codec *codec,
 				   enum snd_soc_bias_level level)
 {
-	printk(KERN_DEBUG "sgtl5000_set_bias_level begin\n");
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
 	u16 reg, ana_pwr;
 	int delay = 0;
@@ -911,7 +902,6 @@ static int sgtl5000_set_bias_level(struct snd_soc_codec *codec,
 		break;
 	}
 	codec->bias_level = level;
-	printk(KERN_DEBUG "sgtl5000_set_bias_level end\n");
 	return 0;
 }
 
@@ -963,7 +953,6 @@ EXPORT_SYMBOL_GPL(sgtl5000_dai);
  */
 static void sgtl5000_work(struct work_struct *work)
 {
-	printk(KERN_DEBUG "sgtl5000_work\n");
 	struct snd_soc_codec *codec =
 		container_of(work, struct snd_soc_codec, delayed_work.work);
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
@@ -978,7 +967,6 @@ static void sgtl5000_work(struct work_struct *work)
 
 static int sgtl5000_suspend(struct platform_device *pdev, pm_message_t state)
 {
-	printk(KERN_DEBUG "sgtl5000_suspend\n");
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
 	struct snd_soc_codec *codec = socdev->card->codec;
 
@@ -989,7 +977,6 @@ static int sgtl5000_suspend(struct platform_device *pdev, pm_message_t state)
 
 static int sgtl5000_resume(struct platform_device *pdev)
 {
-	printk(KERN_DEBUG "sgtl5000_resume\n");
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
 	struct snd_soc_codec *codec = socdev->card->codec;
 	unsigned int i;
@@ -1024,7 +1011,6 @@ static struct snd_soc_codec *sgtl5000_codec;
  */
 static int sgtl5000_probe(struct platform_device *pdev)
 {
-	printk(KERN_DEBUG "sgtl5000_probe begin\n");
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
 	struct snd_soc_codec *codec = sgtl5000_codec;
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
@@ -1173,7 +1159,6 @@ static int sgtl5000_probe(struct platform_device *pdev)
 
 	sgtl5000_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
-	printk(KERN_DEBUG "sgtl5000_probe end\n");
 	return 0;
 }
 
@@ -1222,7 +1207,6 @@ EXPORT_SYMBOL_GPL(soc_codec_dev_sgtl5000);
 static __devinit int sgtl5000_i2c_probe(struct i2c_client *client,
 					const struct i2c_device_id *id)
 {
-	printk(KERN_DEBUG "sgtl5000_i2c_probe begin\n");
 	struct sgtl5000_priv *sgtl5000;
 	struct snd_soc_codec *codec;
 	struct regulator *reg;
@@ -1343,13 +1327,11 @@ err_codec_reg:
 		regulator_put(sgtl5000->reg_vddio);
 	kfree(sgtl5000);
 	kfree(codec);
-	printk(KERN_DEBUG "sgtl5000_i2c_probe end\n");
 	return ret;
 }
 
 static __devexit int sgtl5000_i2c_remove(struct i2c_client *client)
 {
-	printk(KERN_DEBUG "sgtl5000_i2c_remove\n");
 	struct snd_soc_codec *codec = i2c_get_clientdata(client);
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
 
