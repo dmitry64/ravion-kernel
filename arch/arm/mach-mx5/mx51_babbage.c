@@ -763,11 +763,7 @@ static struct mxc_camera_platform_data camera_data = {
 };
 
 static struct i2c_board_info mxc_i2c0_board_info[] __initdata = {
-	{
-	.type = "ov3640",
-	.addr = 0x3C,
-	.platform_data = (void *)&camera_data,
-	},
+
 };
 
 static struct mxc_lightsensor_platform_data ls_data = {
@@ -803,46 +799,6 @@ static struct i2c_board_info mxc_i2c1_board_info[] __initdata = {
 	 },
 };
 
-static struct mtd_partition mxc_spi_nor_partitions[] = {
-	{
-	 .name = "bootloader",
-	 .offset = 0,
-	 .size = 0x00040000,},
-	{
-	 .name = "kernel",
-	 .offset = MTDPART_OFS_APPEND,
-	 .size = MTDPART_SIZ_FULL,},
-
-};
-
-static struct mtd_partition mxc_dataflash_partitions[] = {
-	{
-	 .name = "u-boot",
-	 .offset = 0,
-	 .size = 768 * 1024,},
-	{
-	 .name = "u-boot-env",
-	 .offset = MTDPART_OFS_APPEND,
-	 .size = 256 * 1024,},
-	{
-	 .name = "reserved",
-	 .offset = MTDPART_OFS_APPEND,
-	 .size = MTDPART_SIZ_FULL,},
-};
-
-static struct flash_platform_data mxc_spi_flash_data[] = {
-	{
-	 .name = "mxc_spi_nor",
-	 .parts = mxc_spi_nor_partitions,
-	 .nr_parts = ARRAY_SIZE(mxc_spi_nor_partitions),
-	 .type = "sst25vf016b",},
-	{
-	 .name = "mxc_dataflash",
-	 .parts = mxc_dataflash_partitions,
-	 .nr_parts = ARRAY_SIZE(mxc_dataflash_partitions),
-	 .type = "at45db321d",}
-};
-
 static struct mcp251x_platform_data mxc_mcp251x_pdata = {
 	.oscillator_frequency 	= 16000000,
 	.board_specific_setup	= mxc_mcp251x_setup,
@@ -850,25 +806,6 @@ static struct mcp251x_platform_data mxc_mcp251x_pdata = {
 	.power_enable		= mxc_mcp251x_power_enable,
 };
 
-static struct spi_board_info mxc_spi_nor_device[] __initdata = {
-	{
-	 .modalias = "mxc_spi_nor",
-	 .max_speed_hz = 25000000,	/* max spi clock (SCK) speed in HZ */
-	 .bus_num = 1,
-	 .chip_select = 1,
-	 .platform_data = &mxc_spi_flash_data[0],
-	},
-};
-
-static struct spi_board_info mxc_dataflash_device[] __initdata = {
-	{
-	 .modalias = "mxc_dataflash",
-	 .max_speed_hz = 25000000,	/* max spi clock (SCK) speed in HZ */
-	 .bus_num = 1,
-	 .chip_select = 1,
-	 .platform_data = &mxc_spi_flash_data[1],
-	},
-};
 
 static struct spi_board_info mxc_mcp2515x_device[] __initdata = {
 	{
@@ -879,16 +816,6 @@ static struct spi_board_info mxc_mcp2515x_device[] __initdata = {
 	 .chip_select = 2,
 	 .irq = IOMUX_TO_IRQ_V3(BABBAGE_CAN_IRQ),
 	 .platform_data = &mxc_mcp251x_pdata,
-	},
-};
-
-static struct spi_board_info mxc_sagrad_device[] __initdata = {
-	{
-	 .modalias = "p54spi",
-	 .max_speed_hz = 32000000,	/* max spi clock (SCK) speed in HZ */
-	 .mode = SPI_MODE_0,
-	 .bus_num = 3,
-	 .chip_select = 2,
 	},
 };
 
@@ -1365,17 +1292,11 @@ static void __init mxc_board_init(void)
 
 	/* DIMAS: detect SD2 card inserted */
 	sd2_device_type = CARD_NONE;
-	if((gpio_get_value(BABBAGE_SD2_CD) == 0) && (gpio_get_value(BABBAGE_SD2_WP) == 0))
-		sd2_device_type = CARD_SAGRAD;
-	else
 	if((gpio_get_value(BABBAGE_SD2_CD) == 0) && gpio_get_value(BABBAGE_SD2_WP))
 		sd2_device_type = CARD_TIWI;
 
 	switch(sd2_device_type)
 	{
-		case CARD_SAGRAD:
-			mxc_iomux_v3_setup_multiple_pads(mx51_sd2_as_spi_pads, ARRAY_SIZE(mx51_sd2_as_spi_pads));
-			break;
 		case CARD_TIWI:
 			mxc_iomux_v3_setup_multiple_pads(mx51_sd2_as_sd2_pads, ARRAY_SIZE(mx51_sd2_as_sd2_pads));
 			break;
@@ -1425,10 +1346,6 @@ static void __init mxc_board_init(void)
 	/* DIMAS: SAGRAD and TiWi init */
 	switch(sd2_device_type)
 	{
-		case CARD_SAGRAD:
-			pr_info("DIMAS: Sagrad card inserted.\n");
-			spi_register_board_info(mxc_sagrad_device, ARRAY_SIZE(mxc_sagrad_device));
-			break;
 		case CARD_TIWI:
 			pr_info("DIMAS: TiWi card inserted.\n");
 			mx51_utsvu_wireless_for_tiwi_init();
